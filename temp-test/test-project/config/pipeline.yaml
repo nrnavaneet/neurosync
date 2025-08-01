@@ -1,0 +1,17 @@
+# NeuroSync Pipeline Configuration
+name: test-project
+version: "1.0.0"
+
+ingestion:
+  sources: []
+
+processing:
+  chunk_size: 512
+  overlap: 50
+
+storage:
+  vector_store: faiss
+  metadata_store: postgres
+
+llm:
+  providers: []

@@ -1,0 +1,111 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-neurosync}
+      POSTGRES_USER: ${POSTGRES_USER:-neurosync}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-neurosync}
+    ports:
+      - "15432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-neurosync}"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  neurosync-core:
+    build:
+      context: .
+      dockerfile: docker/neurosync-core/Dockerfile
+    environment:
+      - POSTGRES_HOST=postgres
+      - REDIS_HOST=redis
+    env_file:
+      - .env
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+
+  vector-store:
+    build:
+      context: .
+      dockerfile: docker/vector-store/Dockerfile
+    environment:
+      - POSTGRES_HOST=postgres
+      - REDIS_HOST=redis
+    env_file:
+      - .env
+    volumes:
+      - ./data/vector_store:/app/vector_store
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  airflow-webserver:
+    build:
+      context: .
+      dockerfile: docker/airflow/Dockerfile
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql://${POSTGRES_USER:-neurosync}:${POSTGRES_PASSWORD:-neurosync}@postgres:5432/${POSTGRES_DB:-neurosync}
+      - AIRFLOW__CORE__FERNET_KEY=ZmDfcTF7_60GrrY167zsiPd67pEvs0aGOv2oasOM1Pg=
+      - AIRFLOW__WEBSERVER__SECRET_KEY=secret
+    env_file:
+      - .env
+    volumes:
+      - ./src/neurosync/orchestration/dags:/opt/airflow/dags
+      - ./logs/airflow:/opt/airflow/logs
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: webserver
+
+  airflow-scheduler:
+    build:
+      context: .
+      dockerfile: docker/airflow/Dockerfile
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql://${POSTGRES_USER:-neurosync}:${POSTGRES_PASSWORD:-neurosync}@postgres:5432/${POSTGRES_DB:-neurosync}
+      - AIRFLOW__CORE__FERNET_KEY=ZmDfcTF7_60GrrY167zsiPd67pEvs0aGOv2oasOM1Pg=
+    env_file:
+      - .env
+    volumes:
+      - ./src/neurosync/orchestration/dags:/opt/airflow/dags
+      - ./logs/airflow:/opt/airflow/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: scheduler
+
+volumes:
+  postgres_data:
+  redis_data:
