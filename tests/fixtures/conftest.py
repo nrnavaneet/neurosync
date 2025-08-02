@@ -4,12 +4,12 @@ Pytest configuration and fixtures for NeuroSync tests
 
 import tempfile
 from pathlib import Path
+from typing import Any, Dict
 
 import pytest
-from fastapi.testclient import TestClient
 
+# Import NeuroSync components for testing
 from neurosync.core.config.settings import Settings
-from neurosync.serving.api.main import app
 
 
 @pytest.fixture(scope="session")
@@ -27,12 +27,6 @@ def test_settings() -> Settings:
 
 
 @pytest.fixture
-def api_client() -> TestClient:
-    """FastAPI test client"""
-    return TestClient(app)
-
-
-@pytest.fixture
 def sample_text() -> str:
     """Sample text for testing"""
     return """
@@ -44,6 +38,56 @@ def sample_text() -> str:
     to ensure our processing pipeline works correctly with various
     text structures and formats.
     """
+
+
+@pytest.fixture
+def sample_config() -> Dict[str, Any]:
+    """Sample configuration for testing connectors"""
+    return {
+        "sources": [
+            {
+                "name": "test_files",
+                "type": "file",
+                "enabled": True,
+                "config": {
+                    "base_path": "./test_data",
+                    "file_patterns": ["*.txt", "*.md"],
+                    "batch_size": 10,
+                },
+            }
+        ],
+        "global_settings": {"max_concurrent_sources": 2, "timeout_seconds": 30},
+    }
+
+
+@pytest.fixture
+def temp_directory():
+    """Create a temporary directory for tests"""
+    with tempfile.TemporaryDirectory() as temp_dir:
+        yield Path(temp_dir)
+
+
+@pytest.fixture
+def sample_files(temp_directory):
+    """Create sample files for testing"""
+    files = []
+
+    # Create text file
+    txt_file = temp_directory / "sample.txt"
+    txt_file.write_text("This is a sample text file for testing.")
+    files.append(txt_file)
+
+    # Create markdown file
+    md_file = temp_directory / "README.md"
+    md_file.write_text("# Test Document\nThis is a test markdown file.")
+    files.append(md_file)
+
+    # Create JSON file
+    json_file = temp_directory / "data.json"
+    json_file.write_text('{"test": "data", "number": 42}')
+    files.append(json_file)
+
+    return files
 
 
 @pytest.fixture

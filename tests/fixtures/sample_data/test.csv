@@ -1,0 +1,11 @@
+id,name,email,department,role,salary,hired_date,status
+1,John Doe,john.doe@example.com,Engineering,Senior Developer,85000,2022-01-15,Active
+2,Jane Smith,jane.smith@example.com,Data Science,Data Scientist,92000,2021-08-20,Active
+3,Mike Johnson,mike.johnson@example.com,DevOps,Infrastructure Engineer,88000,2023-03-10,Active
+4,Sarah Wilson,sarah.wilson@example.com,Product,Product Manager,95000,2020-11-30,Active
+5,Tom Brown,tom.brown@example.com,Marketing,Marketing Specialist,65000,2023-06-15,Active
+6,Lisa Garcia,lisa.garcia@example.com,Sales,Sales Representative,70000,2022-09-01,Active
+7,David Lee,david.lee@example.com,Engineering,Junior Developer,60000,2024-01-20,Active
+8,Emma Davis,emma.davis@example.com,Data Science,ML Engineer,89000,2021-12-10,Active
+9,Chris Taylor,chris.taylor@example.com,DevOps,Site Reliability Engineer,91000,2022-04-25,Active
+10,Amy Martinez,amy.martinez@example.com,HR,HR Coordinator,58000,2023-02-14,Active

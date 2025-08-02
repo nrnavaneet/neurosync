@@ -171,6 +171,12 @@ def system() -> None:
 
 
 @app.command()
+def health() -> None:
+    """Check overall system health (alias for system command)"""
+    system()
+
+
+@app.command()
 def services() -> None:
     """Show detailed service information"""
     logger.info("Displaying service information")

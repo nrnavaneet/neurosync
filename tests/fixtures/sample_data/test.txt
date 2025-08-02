@@ -1,0 +1,53 @@
+NeuroSync Test Text File
+
+This is a plain text file containing sample data for testing the NeuroSync file ingestion system.
+
+Employee Data Summary:
+======================
+
+Total Employees: 10
+Active Status: 100%
+Departments: 7
+
+Department List:
+- Engineering (2 employees)
+- Data Science (2 employees)
+- DevOps (2 employees)
+- Product (1 employee)
+- Marketing (1 employee)
+- Sales (1 employee)
+- HR (1 employee)
+
+Salary Information:
+==================
+
+Highest Paid: Sarah Wilson (Product Manager) - $95,000
+Lowest Paid: Amy Martinez (HR Coordinator) - $58,000
+Average Salary: $78,300
+Total Payroll: $783,000
+
+Recent Hires:
+=============
+
+David Lee - Junior Developer (January 2024)
+Tom Brown - Marketing Specialist (June 2023)
+Mike Johnson - Infrastructure Engineer (March 2023)
+Amy Martinez - HR Coordinator (February 2023)
+
+Skills Analysis:
+===============
+
+Top Skills:
+1. Python - 4 employees
+2. Cloud Technologies - 5 employees
+3. JavaScript - 2 employees
+4. Machine Learning - 2 employees
+5. DevOps Tools - 3 employees
+
+This file contains structured text data that should be successfully ingested and processed by NeuroSync.
+
+---
+File Type: Plain Text
+Encoding: UTF-8
+Test Purpose: File Ingestion Validation
+Date Created: August 2, 2025

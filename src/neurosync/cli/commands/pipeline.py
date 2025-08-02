@@ -2,6 +2,8 @@
 AI Pipeline management commands for NeuroSync CLI
 """
 
+from pathlib import Path
+
 import typer
 from rich.console import Console
 from rich.progress import Progress, SpinnerColumn, TextColumn
@@ -25,6 +27,12 @@ def run(
     ),
 ) -> None:
     """Run a NeuroSync pipeline"""
+    # Check if config file exists
+    config_path = Path(config)
+    if not config_path.exists():
+        console.print(f"Configuration file does not exist: {config}", style="red")
+        raise typer.Exit(1)
+
     logger.info(f"Starting pipeline execution: {config}")
 
     if dry_run:

@@ -1,5 +1,5 @@
 # Vector Store Dockerfile (using FAISS)
-FROM python:3.11-slim
+FROM python:3-slim
 
 # Install dependencies for FAISS
 RUN apt-get update && apt-get install -y \

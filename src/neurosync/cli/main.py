@@ -38,6 +38,7 @@ def version_callback(value: bool) -> None:
         table.add_column("Version", style="green")
         table.add_column("Environment", style="yellow")
 
+        # Add core system information rows
         table.add_row("NeuroSync", settings.APP_VERSION, settings.ENVIRONMENT)
         table.add_row("Python", "3.11+", "Required")
         table.add_row("API Port", str(settings.API_PORT), "Default")
@@ -85,6 +86,7 @@ def version() -> None:
     table.add_column("Version", style="green")
     table.add_column("Environment", style="yellow")
 
+    # Core version and environment information
     table.add_row("NeuroSync", settings.APP_VERSION, settings.ENVIRONMENT)
     table.add_row("Python", "3.11+", "Required")
     table.add_row("API Port", str(settings.API_PORT), "Default")

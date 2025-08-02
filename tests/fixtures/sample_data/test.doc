@@ -1,0 +1,61 @@
+NeuroSync Test Document
+=======================
+
+This is a sample DOC file for testing NeuroSync file ingestion capabilities.
+
+COMPANY OVERVIEW
+================
+
+Our organization has grown significantly over the past few years:
+
+- Total Employees: 10
+- Departments: 7 (Engineering, Data Science, DevOps, Product, Marketing, Sales, HR)
+- Average Salary: $78,300
+- Active Status: 100%
+
+DEPARTMENT BREAKDOWN
+===================
+
+Engineering Department:
+- Senior Developer: John Doe ($85,000)
+- Junior Developer: David Lee ($60,000)
+
+Data Science Department:
+- Data Scientist: Jane Smith ($92,000)
+- ML Engineer: Emma Davis ($89,000)
+
+DevOps Department:
+- Infrastructure Engineer: Mike Johnson ($88,000)
+- Site Reliability Engineer: Chris Taylor ($91,000)
+
+Other Departments:
+- Product Manager: Sarah Wilson ($95,000)
+- Marketing Specialist: Tom Brown ($65,000)
+- Sales Representative: Lisa Garcia ($70,000)
+- HR Coordinator: Amy Martinez ($58,000)
+
+HIRING TIMELINE
+===============
+
+2020: 1 employee
+2021: 2 employees
+2022: 3 employees
+2023: 3 employees
+2024: 1 employee
+
+SKILLS DISTRIBUTION
+==================
+
+Most common skills across the organization:
+- Python: 40% of employees
+- Technical Leadership: 30% of employees
+- Cloud Technologies: 50% of employees
+- Data Analysis: 20% of employees
+
+This document should be properly parsed and processed by the NeuroSync ingestion system.
+
+---
+Document Type: Test Data
+Created: August 2, 2025
+Purpose: NeuroSync File Ingestion Testing
+Status: Ready for Processing

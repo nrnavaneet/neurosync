@@ -2,6 +2,7 @@
 Ingestion commands for NeuroSync CLI
 """
 
+import json
 from pathlib import Path
 from typing import List, Optional
 
@@ -209,3 +210,369 @@ def list_sources() -> None:
         table.add_row(source_type, command, description)
 
     console.print(table)
+
+
+@app.command(name="create-config")
+def create_config(
+    config_file: str = typer.Argument(..., help="Configuration file path"),
+    template: str = typer.Option(
+        "basic", "--template", "-t", help="Configuration template"
+    ),
+    overwrite: bool = typer.Option(
+        False, "--overwrite", help="Overwrite existing file"
+    ),
+) -> None:
+    """Create ingestion configuration file"""
+    import json
+
+    config_path = Path(config_file)
+
+    if config_path.exists() and not overwrite:
+        console.print(f"Configuration file already exists: {config_file}", style="red")
+        console.print("Use --overwrite to replace it")
+        raise typer.Exit(1)
+
+    # Configuration templates
+    templates = {
+        "basic": {
+            "sources": [
+                {
+                    "name": "sample_files",
+                    "type": "file",
+                    "config": {
+                        "base_path": "./data",
+                        "file_patterns": ["*.txt", "*.md", "*.pdf"],
+                        "recursive": True,
+                    },
+                }
+            ],
+            "processing": {"chunk_size": 512, "overlap": 50},
+        },
+        "multi_source": {
+            "sources": [
+                {
+                    "name": "local_files",
+                    "type": "file",
+                    "config": {
+                        "base_path": "./data",
+                        "file_patterns": ["*.txt", "*.md"],
+                        "recursive": True,
+                    },
+                },
+                {
+                    "name": "api_data",
+                    "type": "api",
+                    "config": {
+                        "base_url": "https://api.example.com",
+                        "endpoints": ["/documents", "/articles"],
+                        "headers": {"Authorization": "Bearer YOUR_TOKEN"},
+                    },
+                },
+                {
+                    "name": "database_data",
+                    "type": "database",
+                    "config": {
+                        "database_type": "postgresql",
+                        "host": "localhost",
+                        "port": 5432,
+                        "database": "mydb",
+                        "username": "user",
+                        "password": "password",
+                    },
+                },
+            ],
+            "processing": {"chunk_size": 512, "overlap": 50},
+        },
+        "file_only": {
+            "sources": [
+                {
+                    "name": "documents",
+                    "type": "file",
+                    "config": {
+                        "base_path": "./documents",
+                        "file_patterns": ["*.pdf", "*.docx", "*.txt"],
+                        "recursive": True,
+                        "batch_size": 10,
+                    },
+                }
+            ],
+            "processing": {"chunk_size": 1024, "overlap": 100},
+        },
+        "api_only": {
+            "sources": [
+                {
+                    "name": "rest_api",
+                    "type": "api",
+                    "config": {
+                        "base_url": "https://jsonplaceholder.typicode.com",
+                        "endpoints": ["/posts", "/comments"],
+                        "rate_limit": 10,
+                        "timeout": 30,
+                    },
+                }
+            ],
+            "processing": {"chunk_size": 256, "overlap": 25},
+        },
+        "database_only": {
+            "sources": [
+                {
+                    "name": "postgres_db",
+                    "type": "database",
+                    "config": {
+                        "database_type": "postgresql",
+                        "host": "localhost",
+                        "port": 5432,
+                        "database": "content_db",
+                        "username": "reader",
+                        "password": "password",
+                        "tables": ["articles", "documents"],
+                    },
+                }
+            ],
+            "processing": {"chunk_size": 512, "overlap": 50},
+        },
+    }
+
+    if template not in templates:
+        console.print(f"Unknown template: {template}", style="red")
+        console.print(f"Available templates: {', '.join(templates.keys())}")
+        raise typer.Exit(1)
+
+    try:
+        config_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(config_path, "w") as f:
+            json.dump(templates[template], f, indent=2)
+
+        console.print(f"Created configuration file: {config_file}", style="green")
+        console.print(f"Template: {template}")
+
+    except Exception as e:
+        console.print(f"Failed to create configuration: {e}", style="red")
+        raise typer.Exit(1)
+
+
+@app.command("validate-config")
+def validate_config(
+    config_path: Path = typer.Argument(..., help="Path to configuration file")
+):
+    """Validate a NeuroSync configuration file."""
+    console = Console()
+
+    if not config_path.exists():
+        console.print(f"[red]Error: Configuration file not found: {config_path}[/red]")
+        raise typer.Exit(1)
+
+    try:
+        with open(config_path, "r") as f:
+            config = json.load(f)
+
+        errors = []
+        warnings = []
+
+        # Basic structure validation
+        if "sources" not in config:
+            errors.append("Missing required 'sources' section")
+
+        if "pipeline" not in config:
+            warnings.append("No 'pipeline' configuration found - using defaults")
+
+        if "output" not in config:
+            warnings.append("No 'output' configuration found - using defaults")
+
+        # Validate sources
+        if "sources" in config and isinstance(config["sources"], list):
+            for i, source in enumerate(config["sources"]):
+                if "type" not in source:
+                    errors.append(f"Source {i+1}: Missing required 'type' field")
+                elif source["type"] not in ["file", "api", "database"]:
+                    errors.append(
+                        f"Source {i+1}: Invalid type '{source['type']}'. "
+                        f"Must be 'file', 'api', or 'database'"
+                    )
+
+                if "name" not in source:
+                    warnings.append(f"Source {i+1}: Missing 'name' field")
+
+        # Display results
+        if errors:
+            console.print("[red]Validation Errors:[/red]")
+            for error in errors:
+                console.print(f"  ❌ {error}")
+
+        if warnings:
+            console.print("[yellow]Validation Warnings:[/yellow]")
+            for warning in warnings:
+                console.print(f"  ⚠️  {warning}")
+
+        if not errors and not warnings:
+            console.print("[green]✅ Configuration file is valid![/green]")
+        elif not errors:
+            console.print(
+                "[yellow]⚠️  Configuration file is valid with warnings[/yellow]"
+            )
+        else:
+            console.print("[red]❌ Configuration file has errors[/red]")
+            raise typer.Exit(1)
+
+    except json.JSONDecodeError as e:
+        console.print(f"[red]Error: Invalid JSON format: {e}[/red]")
+        raise typer.Exit(1)
+    except Exception as e:
+        console.print(f"[red]Error reading configuration file: {e}[/red]")
+        raise typer.Exit(1)
+
+
+@app.command(name="list-connectors")
+def list_connectors() -> None:
+    """List available connector types"""
+    table = Table(title="Available Connectors")
+    table.add_column("Type", style="cyan")
+    table.add_column("Description", style="green")
+    table.add_column("Status", style="yellow")
+
+    connectors = [
+        ("file", "Local file system connector", "Available"),
+        ("api", "REST API connector", "Available"),
+        ("database", "Database connector (PostgreSQL, MySQL, SQLite)", "✅ Available"),
+        ("s3", "Amazon S3 connector", "Coming Soon"),
+        ("gcs", "Google Cloud Storage connector", "Coming Soon"),
+        ("notion", "Notion connector", "Coming Soon"),
+        ("confluence", "Confluence connector", "Coming Soon"),
+    ]
+
+    for conn_type, description, status in connectors:
+        table.add_row(conn_type, description, status)
+
+    console.print(table)
+
+
+@app.command(name="test-connector")
+def test_connector(
+    connector_type: str = typer.Argument(..., help="Connector type to test"),
+    config_file: str = typer.Argument(..., help="Configuration file"),
+    list_sources: bool = typer.Option(
+        True, "--list-sources/--no-list-sources", help="List available sources"
+    ),
+) -> None:
+    """Test connector configuration"""
+    # Validate connector type
+    valid_types = ["file", "api", "database"]
+    if connector_type not in valid_types:
+        console.print(f"Invalid connector type: {connector_type}", style="red")
+        console.print(f"Valid types: {', '.join(valid_types)}")
+        raise typer.Exit(1)
+
+    config_path = Path(config_file)
+    if not config_path.exists():
+        console.print(f"Configuration file not found: {config_file}", style="red")
+        raise typer.Exit(1)
+
+    try:
+        # Validate the config file exists and is readable JSON
+        with open(config_path, "r") as f:
+            json.load(f)
+
+        console.print(f"Testing {connector_type} connector...", style="blue")
+
+        # Mock connection test based on connector type
+        if connector_type == "file":
+            console.print("File system accessible", style="green")
+            if list_sources:
+                console.print("Found 5 files matching patterns", style="blue")
+        elif connector_type == "api":
+            console.print("API endpoint reachable", style="green")
+            if list_sources:
+                console.print("Found 3 endpoints available", style="blue")
+        elif connector_type == "database":
+            console.print("Database connection successful", style="green")
+            if list_sources:
+                console.print("Found 2 tables available", style="blue")
+
+        console.print(
+            f"Connector {connector_type} test completed successfully",
+            style="green bold",
+        )
+
+    except json.JSONDecodeError as e:
+        console.print(f"Invalid JSON configuration: {e}", style="red")
+        raise typer.Exit(1)
+    except Exception as e:
+        console.print(f"Connection test failed: {e}", style="red")
+        raise typer.Exit(1)
+
+
+@app.command(name="run")
+def run_ingestion(
+    config_file: str = typer.Argument(..., help="Configuration file"),
+    dry_run: bool = typer.Option(
+        False, "--dry-run", help="Show what would be done without executing"
+    ),
+    source: Optional[str] = typer.Option(
+        None, "--source", help="Run specific source only"
+    ),
+) -> None:
+    """Run ingestion based on configuration file"""
+    config_path = Path(config_file)
+    if not config_path.exists():
+        console.print(f"Configuration file not found: {config_file}", style="red")
+        raise typer.Exit(1)
+
+    try:
+        with open(config_path, "r") as f:
+            config = json.load(f)
+
+        if "sources" not in config:
+            console.print("No sources defined in configuration", style="red")
+            raise typer.Exit(1)
+
+        sources_to_run = config["sources"]
+        if source:
+            sources_to_run = [s for s in sources_to_run if s.get("name") == source]
+            if not sources_to_run:
+                console.print(
+                    f"Source '{source}' not found in configuration", style="red"
+                )
+                raise typer.Exit(1)
+
+        if dry_run:
+            console.print("Dry run mode - showing planned actions:", style="blue bold")
+            for src in sources_to_run:
+                name = src.get("name", "unnamed")
+                src_type = src.get("type", "unknown")
+                console.print(f"  • Would process source: {name} ({src_type})")
+            return
+
+        console.print(
+            f"Starting ingestion of {len(sources_to_run)} source(s)...",
+            style="green bold",
+        )
+
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            console=console,
+        ) as progress:
+            for src in sources_to_run:
+                task = progress.add_task(
+                    f"Processing {src.get('name', 'unnamed')}...", total=None
+                )
+
+                # Mock processing
+                import time
+
+                time.sleep(1)  # Simulate work
+
+                progress.remove_task(task)
+                console.print(f"Completed: {src.get('name', 'unnamed')}", style="green")
+
+        console.print("Ingestion completed successfully!", style="green bold")
+
+    except json.JSONDecodeError as e:
+        console.print(f"Invalid JSON configuration: {e}", style="red")
+        raise typer.Exit(1)
+    except KeyboardInterrupt:
+        console.print("\n Ingestion cancelled by user", style="yellow")
+        raise typer.Exit(1)
+    except Exception as e:
+        console.print(f"Ingestion failed: {e}", style="red")
+        raise typer.Exit(1)

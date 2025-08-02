@@ -36,7 +36,7 @@ def setup_logging() -> None:
 
     structlog.configure(
         processors=processors,
-        wrapper_class=structlog.stdlib.BoundLogger,  # Bound logger supports
+        wrapper_class=structlog.stdlib.BoundLogger,  # Bound logger metadata
         logger_factory=structlog.stdlib.LoggerFactory(),
         context_class=dict,
         cache_logger_on_first_use=True,
@@ -91,7 +91,7 @@ def get_logger(name: str) -> structlog.BoundLogger:
     return structlog.get_logger(name)
 
 
-def add_correlation_id(correlation_id: str) -> structlog.BoundLogger:
+def add_correlation_id(correlation_id: str) -> None:
     """Add correlation ID to logger context"""
     logger = get_logger(__name__)
     logger = logger.bind(correlation_id=correlation_id)

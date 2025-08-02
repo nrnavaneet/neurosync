@@ -5,20 +5,24 @@ set -e
 echo "Setting up Neurosync environment..."
 
 # Check Python version
-python_version=$(python3 --version 2>&1 | grep -o '[0-9]\+\.[0-9]\+')
-required_version="3.11"
-
-if ! python3 -c "import sys; sys.exit(0 if sys.version_info >= (3, 11) else 1)" 2>/dev/null; then
-    echo "Python 3.11+ is required. Found: $python_version"
+PYTHON_CMD="/opt/homebrew/bin/python3.11"
+if ! command -v $PYTHON_CMD &> /dev/null; then
+    echo "Python 3.11 not found at $PYTHON_CMD"
+    echo "Please install Python 3.11: brew install python@3.11"
     exit 1
 fi
 
+python_version=$($PYTHON_CMD --version 2>&1 | grep -o '[0-9]\+\.[0-9]\+')
+required_version="3.11"
+
+echo "Using Python version: $python_version"
+
 echo "Python version check passed"
 
-# Create virtual environment
+# Create virtual environment with Python 3.11
 if [ ! -d "venv" ]; then
-    echo "Creating virtual environment..."
-    python3 -m venv venv
+    echo "Creating virtual environment with Python 3.11..."
+    $PYTHON_CMD -m venv venv
 fi
 
 # Activate virtual environment
