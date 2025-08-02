@@ -25,6 +25,12 @@ install-dev:
 	pip install -r requirements-dev.txt
 	pip install -e .
 
+# Download the spaCy English model
+python -m spacy download en_core_web_sm
+
+# Download NLTK data (needed for some tokenizers)
+python -m nltk.downloader punkt
+
 # Complete development setup
 setup: install-dev
 	pre-commit install

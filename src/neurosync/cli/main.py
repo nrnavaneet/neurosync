@@ -2,13 +2,14 @@
 NeuroSync CLI - Main entry point
 """
 
+import logging
 from typing import Optional
 
 import typer
 from rich.console import Console
 from rich.table import Table
 
-from neurosync.cli.commands import ingest, pipeline, status
+from neurosync.cli.commands import ingest, pipeline, process, status
 from neurosync.core.config.settings import settings
 from neurosync.core.logging.logger import get_logger
 
@@ -16,8 +17,9 @@ from neurosync.core.logging.logger import get_logger
 app = typer.Typer(
     name="neurosync",
     help="AI-Native ETL Pipeline for RAG and LLM Applications",
-    rich_markup_mode="rich",
     no_args_is_help=True,
+    add_completion=False,
+    rich_markup_mode="rich",  # Enable rich markup
 )
 
 # Initialize console and logger
@@ -28,9 +30,10 @@ logger = get_logger(__name__)
 app.add_typer(ingest.app, name="ingest", help="Data ingestion commands")
 app.add_typer(pipeline.app, name="pipeline", help="Pipeline management commands")
 app.add_typer(status.app, name="status", help="System status commands")
+app.add_typer(process.app, name="process", help="Intelligent processing and chunking")
 
 
-def version_callback(value: bool) -> None:
+def version_callback(ctx, param, value: bool) -> None:
     """Handle version callback"""
     if value:
         table = Table(title="NeuroSync Version Information")
@@ -69,8 +72,6 @@ def main(
     Run 'neurosync --help' for available commands.
     """
     if verbose:
-        import logging
-
         logging.getLogger().setLevel(logging.DEBUG)
         logger.info("Verbose logging enabled")
 

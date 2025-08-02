@@ -46,6 +46,12 @@ pip install -e .
 echo "Setting up pre-commit hooks..."
 pre-commit install
 
+# Download the spaCy English model
+python -m spacy download en_core_web_sm
+
+# Download NLTK data (needed for some tokenizers)
+python -m nltk.downloader punkt
+
 # Create necessary directories
 echo "Creating directories..."
 mkdir -p data logs uploads data/vector_store

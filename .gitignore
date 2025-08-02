@@ -44,7 +44,7 @@ coverage.xml
 .pytest_cache/
 
 .ipynb_checkpoints
-
+sample_data/
 profile_default/
 ipython_config.py
 
