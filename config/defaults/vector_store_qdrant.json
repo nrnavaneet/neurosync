@@ -1,0 +1,8 @@
+{
+  "type": "qdrant",
+  "host": "localhost",
+  "port": 6333,
+  "collection_name": "neurosync_vectors",
+  "distance_metric": "cosine",
+  "enable_versioning": false
+}
