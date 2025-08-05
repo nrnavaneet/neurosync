@@ -93,19 +93,26 @@ class FileConnector(BaseConnector):
 
     async def list_sources(self) -> List[str]:
         """List all supported files in the base path"""
-        sources = []
+        sources = set()  # Use set to avoid duplicates
 
         try:
-            pattern = "**/*" if self.recursive else "*"
-            for file_path in self.base_path.glob(pattern):
-                if self._is_valid_file(file_path):
-                    relative_path = file_path.relative_to(self.base_path)
-                    sources.append(str(relative_path))
+            # Use file patterns from config
+            for pattern in self.file_patterns:
+                if self.recursive:
+                    search_pattern = f"**/{pattern}"
+                else:
+                    search_pattern = pattern
+
+                for file_path in self.base_path.glob(search_pattern):
+                    if self._is_valid_file(file_path):
+                        relative_path = file_path.relative_to(self.base_path)
+                        sources.add(str(relative_path))
         except Exception as e:
             raise IngestionError(f"Failed to list sources: {e}")
 
-        self.logger.info(f"Found {len(sources)} valid files")
-        return sources
+        sources_list = list(sources)
+        self.logger.info(f"Found {len(sources_list)} valid files")
+        return sources_list
 
     def _is_valid_file(self, file_path: Path) -> bool:
         """Check if file is valid for ingestion"""
@@ -114,10 +121,6 @@ class FileConnector(BaseConnector):
 
         # Check if it's a symlink and we're not following them
         if file_path.is_symlink() and not self.follow_symlinks:
-            return False
-
-        # Check file extension
-        if file_path.suffix.lower() not in self.supported_extensions:
             return False
 
         # Check file size

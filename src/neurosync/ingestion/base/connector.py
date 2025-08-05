@@ -112,6 +112,7 @@ class IngestionResult:
         return {
             "success": self.success,
             "source_id": self.source_id,
+            "content": self.content,
             "content_length": len(self.content) if self.content else 0,
             "error": self.error,
             "processing_time_seconds": self.processing_time_seconds,

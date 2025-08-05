@@ -1,233 +1,190 @@
 """
-Unified LLM provider manager with fallback support.
+Manager to handle different LLM providers.
 """
-from typing import AsyncGenerator, List, Optional
+import asyncio
+import os
+from typing import Any, AsyncGenerator, Dict, Optional
 
-from neurosync.core.logging.logger import get_logger
+import requests
+
+from neurosync.core.exceptions.custom_exceptions import ConfigurationError
 from neurosync.serving.llm.base import BaseLLM
-
-logger = get_logger(__name__)
+from neurosync.serving.llm.huggingface import HuggingFaceLocalLLM
 
 
 class LLMManager:
-    """Manages multiple LLM providers with intelligent fallback support."""
+    """Selects and uses the configured LLM provider."""
 
-    def __init__(self, settings):
-        self.settings = settings
-        self.current_model: Optional[str] = None
-        self.available_providers: List[str] = []
-        self._detect_available_providers()
+    def __init__(self, config: Dict[str, Any]):
+        self.config = config
+        self.provider = config.get("provider", "openrouter")
+        self.api_key = config.get("api_key", "")
+        self.model_name = config.get("model_name", "anthropic/claude-3-haiku")
 
-    def _detect_available_providers(self) -> None:
-        """Detect available LLM providers based on API keys."""
-        self.available_providers = []
+        # Load API key from environment if not provided
+        if not self.api_key:
+            if self.provider == "openrouter":
+                self.api_key = os.getenv("OPENROUTER_API_KEY", "")
+            elif self.provider == "openai":
+                self.api_key = os.getenv("OPENAI_API_KEY", "")
+            elif self.provider == "anthropic":
+                self.api_key = os.getenv("ANTHROPIC_API_KEY", "")
 
-        if self.settings.OPENAI_API_KEY:
-            self.available_providers.append("openai")
-        if self.settings.ANTHROPIC_API_KEY:
-            self.available_providers.append("anthropic")
-        if self.settings.COHERE_API_KEY:
-            self.available_providers.append("cohere")
-        if getattr(self.settings, "GOOGLE_API_KEY", None):
-            self.available_providers.append("google")
-        if getattr(self.settings, "OPENROUTER_API_KEY", None):
-            self.available_providers.append("openrouter")
+        if not self.api_key and self.provider not in ["huggingface_local"]:
+            raise ConfigurationError(f"No API key found for provider: {self.provider}")
 
-        logger.info(f"Available LLM providers: {self.available_providers}")
+        self.model: Optional[BaseLLM] = self._initialize_model()
 
-    def get_available_models(self) -> List[str]:
-        """Get list of available models."""
-        models = []
+    def _initialize_model(self) -> Optional[BaseLLM]:
+        """Initializes the LLM based on config."""
+        if self.provider == "huggingface_local":
+            model_name = self.config.get("model_name", "gpt2")
+            return HuggingFaceLocalLLM(model_name=model_name)
+        else:
+            # For API-based models, we'll handle them directly in this manager
+            return None
 
-        if "openai" in self.available_providers:
-            models.extend(["gpt-3.5-turbo", "gpt-4", "gpt-4-turbo"])
-        if "anthropic" in self.available_providers:
-            models.extend(["claude-3-sonnet", "claude-3-haiku", "claude-2"])
-        if "cohere" in self.available_providers:
-            models.extend(["command", "command-nightly"])
-        if "google" in self.available_providers:
-            models.extend(["gemini-pro"])
-        if "openrouter" in self.available_providers:
-            models.extend(["openai/gpt-3.5-turbo", "anthropic/claude-3-sonnet"])
+    async def generate_stream(self, prompt: str, **kwargs) -> AsyncGenerator[str, None]:
+        """A convenience method to access the model's generate_stream function."""
+        if self.model:
+            async for token in self.model.generate_stream(prompt, **kwargs):
+                yield token
+        else:
+            # Handle API-based providers - return response as single chunk
+            try:
+                response = self._call_api(prompt, **kwargs)
+                yield response
+            except Exception as e:
+                yield f"Error: {str(e)}"
 
-        return models
-
-    def _create_model(self, model: Optional[str] = None) -> BaseLLM:
-        """Create an LLM instance based on configuration."""
-        if model is None:
-            model = getattr(self.settings, "DEFAULT_LLM_MODEL", "gpt-3.5-turbo")
-
-        # Try OpenRouter first if it's available and properly configured
-        if getattr(self.settings, "OPENROUTER_API_KEY", None) and "sk-or-v1-" in str(
-            self.settings.OPENROUTER_API_KEY
-        ):
-            from neurosync.serving.llm.openrouter import OpenRouterLLM
-
-            return OpenRouterLLM(api_key=self.settings.OPENROUTER_API_KEY)
-
-        # Try OpenAI if API key is available
-        if self.settings.OPENAI_API_KEY and any(
-            m in model.lower() for m in ["gpt", "openai"]
-        ):
-            from neurosync.serving.llm.openai import OpenAILLM
-
-            return OpenAILLM(api_key=self.settings.OPENAI_API_KEY)
-
-        # Try Anthropic
-        if self.settings.ANTHROPIC_API_KEY and any(
-            m in model.lower() for m in ["claude", "anthropic"]
-        ):
-            from neurosync.serving.llm.anthropic import AnthropicLLM
-
-            return AnthropicLLM(api_key=self.settings.ANTHROPIC_API_KEY)
-
-        # Try Cohere
-        if self.settings.COHERE_API_KEY and any(
-            m in model.lower() for m in ["command", "cohere"]
-        ):
-            from neurosync.serving.llm.cohere import CohereLLM
-
-            return CohereLLM(api_key=self.settings.COHERE_API_KEY)
-
-        # Try Google Gemini
-        if getattr(self.settings, "GOOGLE_API_KEY", None) and any(
-            m in model.lower() for m in ["gemini", "google"]
-        ):
-            from neurosync.serving.llm.gemini import GeminiLLM
-
-            return GeminiLLM(api_key=self.settings.GOOGLE_API_KEY)
-
-        # Fallback to any available provider
-        if self.settings.OPENAI_API_KEY:
-            from neurosync.serving.llm.openai import OpenAILLM
-
-            return OpenAILLM(api_key=self.settings.OPENAI_API_KEY)
-
-        if self.settings.ANTHROPIC_API_KEY:
-            from neurosync.serving.llm.anthropic import AnthropicLLM
-
-            return AnthropicLLM(api_key=self.settings.ANTHROPIC_API_KEY)
-
-        if self.settings.COHERE_API_KEY:
-            from neurosync.serving.llm.cohere import CohereLLM
-
-            return CohereLLM(api_key=self.settings.COHERE_API_KEY)
-
-        raise ValueError(
-            "No LLM provider configured. Please set at least one API key: "
-            "OPENAI_API_KEY, ANTHROPIC_API_KEY, COHERE_API_KEY, or GOOGLE_API_KEY"
-        )
-
-    async def generate(
-        self,
-        prompt: str,
-        model: Optional[str] = None,
-        max_tokens: Optional[int] = None,
-        temperature: Optional[float] = None,
-        **kwargs,
-    ) -> Optional[str]:
-        """Generate text using the configured LLM with fallback support."""
-        fallback_enabled = getattr(self.settings, "LLM_ENABLE_FALLBACK", True)
-
-        # Try primary model first
+    def generate_response(self, prompt: str, **kwargs) -> str:
+        """Generate a single response (synchronous version)."""
         try:
-            llm = self._create_model(model)
-            self.current_model = model or getattr(
-                self.settings, "DEFAULT_LLM_MODEL", "gpt-3.5-turbo"
-            )
-            response = await llm.generate(
-                prompt=prompt,
-                max_tokens=max_tokens,
-                temperature=temperature,
-                **kwargs,
-            )
-            if response:
-                return response
-        except Exception as e:
-            logger.warning(f"Primary model failed: {e}")
-            if not fallback_enabled:
-                raise
+            if self.model:
+                # For local models, use async method
+                async def _generate():
+                    response_parts = []
+                    if self.model:  # Additional check for mypy
+                        async for token in self.model.generate_stream(prompt, **kwargs):
+                            response_parts.append(token)
+                    return "".join(response_parts)
 
-        # Try fallback providers if enabled
-        if fallback_enabled:
-            for provider in self.available_providers:
+                # Run the async function
                 try:
-                    fallback_model = f"{provider}-default"
-                    if fallback_model != (
-                        model or getattr(self.settings, "DEFAULT_LLM_MODEL", "")
-                    ):
-                        llm = self._create_model(fallback_model)
-                        self.current_model = fallback_model
-                        response = await llm.generate(
-                            prompt=prompt,
-                            max_tokens=max_tokens,
-                            temperature=temperature,
-                            **kwargs,
-                        )
-                        if response:
-                            logger.info(
-                                f"Fallback successful with provider: {provider}"
-                            )
-                            return response
-                except Exception as e:
-                    logger.warning(f"Fallback provider {provider} failed: {e}")
-                    continue
+                    loop = asyncio.get_event_loop()
+                except RuntimeError:
+                    loop = asyncio.new_event_loop()
+                    asyncio.set_event_loop(loop)
 
-        raise ValueError("All LLM providers failed to generate streaming response")
+                return loop.run_until_complete(_generate())
+            else:
+                # Handle API-based providers directly (synchronous)
+                return self._call_api(prompt, **kwargs)
+        except Exception as e:
+            return f"Error generating response: {str(e)}"
 
-    async def generate_stream(
-        self,
-        prompt: str,
-        model: Optional[str] = None,
-        max_tokens: Optional[int] = None,
-        temperature: Optional[float] = None,
-        **kwargs,
-    ) -> AsyncGenerator[str, None]:
-        """Generate streaming text using the configured LLM with fallback support."""
-        fallback_enabled = getattr(self.settings, "LLM_ENABLE_FALLBACK", True)
-
-        # Try primary model first
+    def _call_api(self, prompt: str, **kwargs) -> str:
+        """Call external API providers."""
         try:
-            llm = self._create_model(model)
-            self.current_model = model or getattr(
-                self.settings, "DEFAULT_LLM_MODEL", "gpt-3.5-turbo"
-            )
-            async for chunk in llm.generate_stream(
-                prompt=prompt,
-                max_tokens=max_tokens,
-                temperature=temperature,
-                **kwargs,
-            ):
-                yield chunk
-            return
+            if self.provider == "openrouter":
+                return self._call_openrouter(prompt, **kwargs)
+            elif self.provider == "openai":
+                return self._call_openai(prompt, **kwargs)
+            elif self.provider == "anthropic":
+                return self._call_anthropic(prompt, **kwargs)
+            else:
+                return f"Unsupported provider: {self.provider}"
         except Exception as e:
-            logger.warning(f"Primary model streaming failed: {e}")
-            if not fallback_enabled:
-                raise
+            return f"API call failed: {str(e)}"
 
-        # Try fallback providers if enabled
-        if fallback_enabled:
-            for provider in self.available_providers:
-                try:
-                    fallback_model = f"{provider}-default"
-                    if fallback_model != (
-                        model or getattr(self.settings, "DEFAULT_LLM_MODEL", "")
-                    ):
-                        llm = self._create_model(fallback_model)
-                        self.current_model = fallback_model
-                        logger.info(f"Streaming fallback with provider: {provider}")
-                        async for chunk in llm.generate_stream(
-                            prompt=prompt,
-                            max_tokens=max_tokens,
-                            temperature=temperature,
-                            **kwargs,
-                        ):
-                            yield chunk
-                        return
-                except Exception as e:
-                    logger.warning(
-                        f"Fallback streaming provider {provider} failed: {e}"
-                    )
-                    continue
+    def _call_openrouter(self, prompt: str, **kwargs) -> str:
+        """Call OpenRouter API."""
+        url = "https://openrouter.ai/api/v1/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json",
+        }
 
-        raise ValueError("All LLM providers failed to generate streaming response")
+        data = {
+            "model": self.model_name,
+            "messages": [{"role": "user", "content": prompt}],
+            "max_tokens": kwargs.get("max_tokens", 1000),
+            "temperature": kwargs.get("temperature", 0.7),
+        }
+
+        try:
+            response = requests.post(url, headers=headers, json=data, timeout=30)
+            response.raise_for_status()
+
+            result = response.json()
+            return result["choices"][0]["message"]["content"]
+        except Exception as e:
+            return f"OpenRouter API error: {str(e)}"
+
+    def _call_openai(self, prompt: str, **kwargs) -> str:
+        """Call OpenAI API."""
+        url = "https://api.openai.com/v1/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json",
+        }
+
+        data = {
+            "model": self.model_name or "gpt-4o-mini",
+            "messages": [{"role": "user", "content": prompt}],
+            "max_tokens": kwargs.get("max_tokens", 1000),
+            "temperature": kwargs.get("temperature", 0.7),
+        }
+
+        try:
+            response = requests.post(url, headers=headers, json=data, timeout=30)
+            response.raise_for_status()
+
+            result = response.json()
+            return result["choices"][0]["message"]["content"]
+        except Exception as e:
+            return f"OpenAI API error: {str(e)}"
+
+    def _call_anthropic(self, prompt: str, **kwargs) -> str:
+        """Call Anthropic API."""
+        url = "https://api.anthropic.com/v1/messages"
+        headers = {
+            "x-api-key": self.api_key,
+            "Content-Type": "application/json",
+            "anthropic-version": "2023-06-01",
+        }
+
+        data = {
+            "model": self.model_name or "claude-3-sonnet-20240229",
+            "max_tokens": kwargs.get("max_tokens", 1000),
+            "messages": [{"role": "user", "content": prompt}],
+        }
+
+        try:
+            response = requests.post(url, headers=headers, json=data, timeout=30)
+            response.raise_for_status()
+
+            result = response.json()
+            return result["content"][0]["text"]
+        except Exception as e:
+            return f"Anthropic API error: {str(e)}"
+
+    async def generate(self, prompt: str, **kwargs) -> str:
+        """Async version for server compatibility."""
+        return self.generate_response(prompt, **kwargs)
+
+    @property
+    def current_model(self) -> Optional[str]:
+        """Get the current model name."""
+        return self.provider if self.provider else None
+
+    def get_available_models(self) -> Dict[str, Any]:
+        """Get available models for the current provider."""
+        if self.provider == "huggingface":
+            return {"models": ["sentence-transformers/all-MiniLM-L6-v2"]}
+        elif self.provider == "openai":
+            return {"models": ["gpt-3.5-turbo", "gpt-4"]}
+        elif self.provider == "anthropic":
+            return {"models": ["claude-3-sonnet-20240229"]}
+        else:
+            return {"models": []}

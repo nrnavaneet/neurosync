@@ -9,14 +9,7 @@ import typer
 from rich.console import Console
 from rich.table import Table
 
-from neurosync.cli.commands import (
-    ingest,
-    pipeline,
-    process,
-    serve,
-    status,
-    vector_store,
-)
+from neurosync.cli.commands import ingest, process, serve, status, vector_store
 from neurosync.core.config.settings import settings
 from neurosync.core.logging.logger import get_logger
 
@@ -35,13 +28,57 @@ logger = get_logger(__name__)
 
 # Add subcommands
 app.add_typer(ingest.app, name="ingest", help="Data ingestion commands")
-app.add_typer(pipeline.app, name="pipeline", help="Pipeline management commands")
 app.add_typer(status.app, name="status", help="System status commands")
 app.add_typer(process.app, name="process", help="Intelligent processing and chunking")
 app.add_typer(
     vector_store.app, name="vector-store", help="Vector store management commands"
 )
 app.add_typer(serve.app, name="serve", help="API serving and LLM integration commands")
+
+
+@app.command(name="run")
+def run_pipeline_command(
+    input_path: str = typer.Argument(
+        ..., help="Input path (file, directory, URL, or database connection)"
+    ),
+    auto: bool = typer.Option(
+        False, "--auto", help="Run in automatic mode with smart defaults"
+    ),
+    output_dir: str = typer.Option(
+        "./", "--output-dir", "-o", help="Output directory for generated files"
+    ),
+) -> None:
+    """
+    Run the complete NeuroSync pipeline from ingestion to chat.
+
+    This command handles everything:
+    - Data ingestion from any source
+    - Intelligent processing and chunking
+    - Embedding generation
+    - Vector store creation
+    - LLM setup and interactive chat
+
+    Just provide your input path and let NeuroSync do the rest!
+    """
+    import os
+    from pathlib import Path
+
+    from neurosync.pipelines.pipeline import FullPipeline
+
+    # Change to output directory
+    output_path = Path(output_dir)
+    output_path.mkdir(parents=True, exist_ok=True)
+    os.chdir(output_path)
+
+    # Initialize and run pipeline
+    pipeline = FullPipeline()
+
+    # Show welcome message
+    if not auto:
+        pipeline.show_welcome()
+
+    # Run the full pipeline
+    pipeline.run_full_pipeline(input_path, auto_mode=auto)
 
 
 def version_callback(ctx, param, value: bool) -> None:

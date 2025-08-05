@@ -1,5 +1,9 @@
 {
   "type": "huggingface",
   "model_name": "all-MiniLM-L6-v2",
-  "enable_monitoring": true
+  "enable_monitoring": true,
+  "batch_size": 64,
+  "max_seq_length": 512,
+  "normalize_embeddings": true,
+  "device": "auto"
 }

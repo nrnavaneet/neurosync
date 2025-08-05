@@ -3,5 +3,6 @@
   "model_name": "text-embedding-3-small",
   "api_key": "your-openai-api-key",
   "max_batch_size": 2048,
-  "enable_monitoring": true
+  "enable_monitoring": true,
+  "dimensions": null
 }

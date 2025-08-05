@@ -287,21 +287,21 @@ class TestStatusCommands:
 
 
 class TestPipelineCommands:
-    """Test pipeline management commands"""
+    """Test CLI management commands"""
 
     def test_pipeline_run_missing_config(self):
-        """Test running pipeline with missing config"""
-        result = runner.invoke(app, ["pipeline", "run", "/nonexistent/config.json"])
+        """Test running process command with missing config"""
+        result = runner.invoke(app, ["process", "file", "/nonexistent/file.txt"])
         assert result.exit_code == 1
         assert "does not exist" in result.stdout or "not found" in result.stdout.lower()
 
 
 def test_pipeline_list_command():
-    """Test pipeline list command"""
-    result = runner.invoke(app, ["pipeline", "list"])
+    """Test status command"""
+    result = runner.invoke(app, ["status", "system"])
     assert result.exit_code == 0
-    # When no configurations exist, it shows a help message
-    assert "No pipeline configurations found" in result.stdout
+    # Status command should show system information
+    assert "System Health Status" in result.stdout
 
 
 def test_status_system_command():

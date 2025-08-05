@@ -16,6 +16,13 @@ from neurosync.ingestion.base.connector import (
     IngestionResult,
 )
 
+# Import connectors to ensure they are registered
+from neurosync.ingestion.connectors import (  # noqa: F401
+    api_connector,
+    database_connector,
+    file_connector,
+)
+
 
 class IngestionManager:
     """Manager for orchestrating data ingestion from multiple sources"""
