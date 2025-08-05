@@ -42,6 +42,10 @@ class Settings(BaseSettings):
     HUGGINGFACE_API_KEY: Optional[str] = None
     ANTHROPIC_API_KEY: Optional[str] = None
     COHERE_API_KEY: Optional[str] = None
+    GOOGLE_API_KEY: Optional[str] = None
+    OPENROUTER_API_KEY: Optional[str] = None
+    DEFAULT_LLM_MODEL: str = "gpt-3.5-turbo"
+    LLM_ENABLE_FALLBACK: bool = True
 
     # Vector Store Configuration
     FAISS_INDEX_PATH: str = "/app/data/vector_store"

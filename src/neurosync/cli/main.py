@@ -9,7 +9,14 @@ import typer
 from rich.console import Console
 from rich.table import Table
 
-from neurosync.cli.commands import ingest, pipeline, process, status, vector_store
+from neurosync.cli.commands import (
+    ingest,
+    pipeline,
+    process,
+    serve,
+    status,
+    vector_store,
+)
 from neurosync.core.config.settings import settings
 from neurosync.core.logging.logger import get_logger
 
@@ -34,6 +41,7 @@ app.add_typer(process.app, name="process", help="Intelligent processing and chun
 app.add_typer(
     vector_store.app, name="vector-store", help="Vector store management commands"
 )
+app.add_typer(serve.app, name="serve", help="API serving and LLM integration commands")
 
 
 def version_callback(ctx, param, value: bool) -> None:
