@@ -1,0 +1,5 @@
+{
+  "type": "huggingface",
+  "model_name": "all-MiniLM-L6-v2",
+  "enable_monitoring": true
+}

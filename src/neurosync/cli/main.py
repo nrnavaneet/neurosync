@@ -9,7 +9,7 @@ import typer
 from rich.console import Console
 from rich.table import Table
 
-from neurosync.cli.commands import ingest, pipeline, process, status
+from neurosync.cli.commands import ingest, pipeline, process, status, vector_store
 from neurosync.core.config.settings import settings
 from neurosync.core.logging.logger import get_logger
 
@@ -19,7 +19,7 @@ app = typer.Typer(
     help="AI-Native ETL Pipeline for RAG and LLM Applications",
     no_args_is_help=True,
     add_completion=False,
-    rich_markup_mode="rich",  # Enable rich markup
+    rich_markup_mode="rich",
 )
 
 # Initialize console and logger
@@ -31,6 +31,9 @@ app.add_typer(ingest.app, name="ingest", help="Data ingestion commands")
 app.add_typer(pipeline.app, name="pipeline", help="Pipeline management commands")
 app.add_typer(status.app, name="status", help="System status commands")
 app.add_typer(process.app, name="process", help="Intelligent processing and chunking")
+app.add_typer(
+    vector_store.app, name="vector-store", help="Vector store management commands"
+)
 
 
 def version_callback(ctx, param, value: bool) -> None:
@@ -101,8 +104,15 @@ def init(
     directory: Optional[str] = typer.Option(
         None, "--dir", "-d", help="Target directory"
     ),
+    with_defaults: bool = typer.Option(
+        True,
+        "--with-defaults/--no-defaults",
+        help="Include default configuration files",
+    ),
 ) -> None:
     """Initialize a new NeuroSync project"""
+    import json
+    import shutil
     from pathlib import Path
 
     if directory:
@@ -113,6 +123,7 @@ def init(
 
     target_dir.mkdir(parents=True, exist_ok=True)
 
+    # Create directory structure
     config_dir = target_dir / "config"
     data_dir = target_dir / "data"
     logs_dir = target_dir / "logs"
@@ -121,6 +132,7 @@ def init(
     data_dir.mkdir(exist_ok=True)
     logs_dir.mkdir(exist_ok=True)
 
+    # Create main pipeline configuration
     config_file = config_dir / "pipeline.yaml"
     config_content = f"""
 # NeuroSync Pipeline Configuration
@@ -144,8 +156,158 @@ llm:
 
     config_file.write_text(config_content.strip())
 
-    console.print(f"Initialized NeuroSync project '{name}' in {target_dir}")
-    console.print(f"Edit {config_file} to configure your pipeline")
+    # Create default configuration files if requested
+    if with_defaults:
+        # Get the source defaults directory
+        neurosync_root = Path(__file__).parent.parent.parent.parent
+        source_defaults_dir = neurosync_root / "config" / "defaults"
+
+        if source_defaults_dir.exists():
+            # Create defaults subdirectory in project config
+            defaults_dir = config_dir / "defaults"
+            defaults_dir.mkdir(exist_ok=True)
+
+            # Copy all default configuration files
+            for default_file in source_defaults_dir.glob("*.json"):
+                target_file = defaults_dir / default_file.name
+                shutil.copy2(default_file, target_file)
+                console.print(f"  Created: {target_file.relative_to(target_dir)}")
+        else:
+            # Create default configurations manually if source directory doesn't exist
+            defaults_dir = config_dir / "defaults"
+            defaults_dir.mkdir(exist_ok=True)
+
+            # Create embedding configurations
+            embedding_hf_config = {
+                "type": "huggingface",
+                "model_name": "all-MiniLM-L6-v2",
+                "enable_monitoring": True,
+            }
+            (defaults_dir / "embedding_huggingface.json").write_text(
+                json.dumps(embedding_hf_config, indent=2)
+            )
+
+            embedding_openai_config = {
+                "type": "openai",
+                "model_name": "text-embedding-3-small",
+                "api_key": "your-openai-api-key",
+                "max_batch_size": 2048,
+                "enable_monitoring": True,
+            }
+            (defaults_dir / "embedding_openai.json").write_text(
+                json.dumps(embedding_openai_config, indent=2)
+            )
+
+            # Create vector store configurations
+            vector_store_faiss_flat = {
+                "type": "faiss",
+                "path": "./vector_store",
+                "index_type": "flat",
+                "index_params": {
+                    "nlist": 100,
+                    "m": 16,
+                    "ef_construction": 200,
+                    "ef_search": 100,
+                },
+                "enable_versioning": True,
+            }
+            (defaults_dir / "vector_store_faiss_flat.json").write_text(
+                json.dumps(vector_store_faiss_flat, indent=2)
+            )
+
+            vector_store_faiss_hnsw = {
+                "type": "faiss",
+                "path": "./vector_store",
+                "index_type": "hnsw",
+                "index_params": {"M": 16, "ef_construction": 200, "ef_search": 100},
+                "enable_versioning": True,
+            }
+            (defaults_dir / "vector_store_faiss_hnsw.json").write_text(
+                json.dumps(vector_store_faiss_hnsw, indent=2)
+            )
+
+            vector_store_faiss_ivf = {
+                "type": "faiss",
+                "path": "./vector_store",
+                "index_type": "ivf",
+                "index_params": {"nlist": 100, "nprobe": 10},
+                "enable_versioning": True,
+            }
+            (defaults_dir / "vector_store_faiss_ivf.json").write_text(
+                json.dumps(vector_store_faiss_ivf, indent=2)
+            )
+
+            vector_store_qdrant = {
+                "type": "qdrant",
+                "host": "localhost",
+                "port": 6333,
+                "collection_name": "neurosync_vectors",
+                "distance_metric": "cosine",
+                "enable_versioning": False,
+            }
+            (defaults_dir / "vector_store_qdrant.json").write_text(
+                json.dumps(vector_store_qdrant, indent=2)
+            )
+
+            console.print(
+                "  Created default configuration files in "
+                f"{defaults_dir.relative_to(target_dir)}"
+            )
+
+    # Create sample data structure
+    sample_dir = data_dir / "samples"
+    sample_dir.mkdir(exist_ok=True)
+
+    # Create a sample text file
+    sample_file = sample_dir / "sample.txt"
+    sample_content = """Welcome to NeuroSync!
+
+This is a sample document that demonstrates the capabilities of the NeuroSync
+AI-Native ETL Pipeline.
+
+NeuroSync is designed for Retrieval-Augmented Generation (RAG) and Large
+Language Model (LLM) applications. It provides:
+
+1. Intelligent data ingestion from multiple sources
+2. Advanced text processing and chunking strategies
+3. Vector embeddings with multiple provider support
+4. Scalable vector storage solutions
+5. Hybrid search capabilities
+
+You can use this sample file to test your pipeline:
+1. Run: neurosync ingest file samples/sample.txt --output data/chunks.json
+2. Run: neurosync process file data/chunks.json --strategy recursive
+   --output data/processed.json
+3. Run: neurosync vector-store build data/processed.json \\
+   config/defaults/embedding_huggingface.json \\
+   config/defaults/vector_store_faiss_flat.json
+
+Happy processing with NeuroSync!
+"""
+    sample_file.write_text(sample_content.strip())
+
+    console.print(
+        f"\n[bold green]Initialized NeuroSync project '{name}' "
+        f"in {target_dir}[/bold green]"
+    )
+    console.print("Project structure:")
+    console.print("  ├── config/")
+    console.print("  │   ├── pipeline.yaml")
+    if with_defaults:
+        console.print("  │   └── defaults/")
+        console.print("  │       ├── embedding_*.json")
+        console.print("  │       └── vector_store_*.json")
+    console.print("  ├── data/")
+    console.print("  │   └── samples/")
+    console.print("  │       └── sample.txt")
+    console.print("  └── logs/")
+    console.print("\nNext steps:")
+    console.print(f"  1. cd {name}")
+    console.print("  2. Edit config/pipeline.yaml to configure your pipeline")
+    console.print(
+        "  3. Test with: neurosync ingest file data/samples/sample.txt "
+        "--output data/chunks.json"
+    )
 
 
 if __name__ == "__main__":

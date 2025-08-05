@@ -5,7 +5,8 @@ pydantic>=2.5.0
 pydantic[email]>=2.5.0
 pydantic-settings
 email-validator>=2.0.0
-typer>=0.9.0,<0.10.0
+typer==0.9.0
+click>=8.1.7
 rich>=13.7.0
 sqlalchemy>=1.4,<2.0
 alembic==1.13.1
@@ -53,9 +54,13 @@ pyodbc>=5.0.1
 types-aiofiles>=23.2.0
 
 # Phase 3 NLP and Processing
-langchain==0.1.20
 spacy==3.7.4
 langdetect==1.0.9
 beautifulsoup4==4.12.3
 nltk>=3.9.1
 pydantic-settings>=2.5.0
+
+# Phase 4  Embeddings and Vector Stores
+faiss-cpu>=1.8.0
+qdrant-client==1.9.0
+scikit-learn>=1.3.2

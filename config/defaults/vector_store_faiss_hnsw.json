@@ -1,0 +1,11 @@
+{
+  "type": "faiss",
+  "path": "./vector_store",
+  "index_type": "hnsw",
+  "index_params": {
+    "m": 16,
+    "ef_construction": 200,
+    "ef_search": 100
+  },
+  "enable_versioning": true
+}
