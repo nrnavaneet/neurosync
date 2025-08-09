@@ -1,5 +1,81 @@
 """
-NeuroSync CLI - Main entry point
+NeuroSync CLI - Main command-line interface entry point.
+
+This module serves as the primary entry point for the NeuroSync command-line
+interface, providing a unified set of tools for data ingestion, processing,
+vector storage, and LLM serving. It orchestrates all CLI subcommands and
+provides the main pipeline execution command for end-to-end processing.
+
+Main Commands:
+    run: Execute complete end-to-end pipeline from data to chat
+    ingest: Data ingestion from various sources
+    process: Text processing, cleaning, and chunking
+    vector-store: Vector database management and querying
+    serve: API server deployment and chat interface
+    status: System monitoring and health checks
+
+Key Features:
+    - Unified command interface with rich help system
+    - Intelligent auto-configuration based on input type
+    - Interactive mode with guided configuration selection
+    - Progress monitoring with detailed status reporting
+    - Error handling with recovery suggestions
+    - Configuration validation and template management
+    - Integration with all NeuroSync subsystems
+
+The CLI is designed for both:
+    - Interactive use: Rich formatting, progress bars, and user prompts
+    - Automation: Silent execution modes for CI/CD and scripting
+
+Command Hierarchy:
+    neurosync
+    ├── run: End-to-end pipeline execution
+    ├── ingest: Data extraction and ingestion
+    │   ├── file: Local file and directory processing
+    │   ├── api: REST API data extraction
+    │   ├── database: SQL database ingestion
+    │   └── mock: Test data generation
+    ├── process: Text processing and chunking
+    │   ├── clean: Text cleaning and normalization
+    │   ├── chunk: Content chunking strategies
+    │   └── analyze: Quality assessment and metrics
+    ├── vector-store: Vector database operations
+    │   ├── build: Index creation from processed chunks
+    │   ├── search: Semantic similarity search
+    │   ├── backup: Index backup and versioning
+    │   └── optimize: Performance optimization
+    ├── serve: Production deployment tools
+    │   ├── api: Start FastAPI server
+    │   ├── chat: Interactive chat interface
+    │   ├── config: LLM provider configuration
+    │   └── test: Connection and health testing
+    └── status: System monitoring and diagnostics
+        ├── health: Overall system health check
+        ├── services: Individual service status
+        ├── pipelines: Pipeline execution monitoring
+        └── logs: Log aggregation and analysis
+
+Example Usage:
+    # Quick start with auto-configuration
+    $ neurosync run /path/to/data --auto
+
+    # Interactive pipeline with guided setup
+    $ neurosync run /path/to/data --interactive
+
+    # Step-by-step processing
+    $ neurosync ingest file /docs --output ingested.json
+    $ neurosync process ingested.json --output processed.json
+    $ neurosync vector-store build processed.json config.yaml
+    $ neurosync serve --host 0.0.0.0 --port 8000
+
+    # System monitoring
+    $ neurosync status health
+    $ neurosync status services --watch
+
+For comprehensive usage examples and configuration guides, see:
+    - docs/cli-reference.md
+    - docs/pipeline-usage.md
+    - examples/cli-workflows.sh
 """
 
 import logging

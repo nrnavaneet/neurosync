@@ -1,5 +1,96 @@
 """
-Command-line interface for processing operations
+Command-line interface for processing operations.
+
+This module provides comprehensive CLI commands for text processing, chunking,
+and content transformation operations. It offers both interactive and batch
+processing capabilities with detailed progress reporting and configuration
+management for various processing strategies.
+
+Key Features:
+    - Multiple processing strategies with configurable parameters
+    - Batch processing for large file collections
+    - Interactive processing with real-time progress feedback
+    - Quality assessment and filtering capabilities
+    - Output format options (JSON, CSV, Parquet)
+    - Processing performance metrics and reporting
+    - Error handling with detailed diagnostic information
+    - Configuration validation and optimization suggestions
+
+Command Categories:
+    File Processing: Process individual files or directories
+    Batch Processing: Handle large collections of documents
+    Strategy Testing: Evaluate different processing approaches
+    Quality Assessment: Analyze processing results and metrics
+    Configuration: Manage processing settings and parameters
+
+Processing Strategies:
+    Recursive: Hierarchical text splitting with multiple delimiters
+    Semantic: NLP-based boundary detection for coherent chunks
+    Document Structure: Format-aware processing preserving layout
+    Sliding Window: Overlapping chunks for context preservation
+    Hierarchical: Parent-child relationships with structure awareness
+    Adaptive: Dynamic strategy selection based on content analysis
+
+Performance Features:
+    - Parallel processing for independent operations
+    - Memory-efficient streaming for large files
+    - Progress monitoring with ETA calculations
+    - Resource utilization monitoring and optimization
+    - Batch size optimization for optimal throughput
+    - Checkpointing for resumable long-running operations
+
+Quality Metrics:
+    - Chunk size distribution analysis
+    - Content coherence scoring
+    - Information density assessment
+    - Processing speed and efficiency metrics
+    - Error rate monitoring and categorization
+
+Output Options:
+    The CLI supports multiple output formats:
+    - JSON: Structured output with complete metadata
+    - CSV: Tabular format for analysis and reporting
+    - Parquet: Compressed columnar format for data science
+    - JSONL: Line-delimited JSON for streaming processing
+
+Configuration Management:
+    - YAML configuration files for complex processing setups
+    - Command-line parameter overrides for quick adjustments
+    - Configuration validation and optimization suggestions
+    - Template configurations for common use cases
+    - Environment-specific configuration profiles
+
+Error Handling and Recovery:
+    - Detailed error reporting with context and suggestions
+    - Graceful handling of corrupted or problematic content
+    - Automatic recovery mechanisms for transient failures
+    - Comprehensive logging for debugging and monitoring
+    - Progress preservation for resumed operations
+
+Integration Points:
+    - Input from ingestion pipeline outputs
+    - Integration with embedding generation workflows
+    - Export to vector database preparation formats
+    - Monitoring and alerting system integration
+
+Example Usage:
+    # Process a single file with default settings
+    neurosync process file data.json
+
+    # Batch process with custom configuration
+    neurosync process batch --config custom.yaml --strategy semantic
+
+    # Quality assessment of processing results
+    neurosync process analyze --input processed_chunks.json
+
+For advanced processing configurations and custom strategies, see:
+    - docs/processing-cli-reference.md
+    - docs/processing-strategies.md
+    - examples/batch-processing-workflows.md
+
+Author: NeuroSync Team
+Created: 2025
+License: MIT
 """
 import json
 import time

@@ -41,15 +41,15 @@ class TestCompleteNeuroSyncPipeline:
         # Initialize pipeline
         cls.pipeline = FullPipeline()
 
-        print(f"\n🧪 Test environment created at: {cls.test_dir}")
-        print(f"📁 Sample data directory: {cls.sample_data_dir}")
+        print(f"\n Test environment created at: {cls.test_dir}")
+        print(f" Sample data directory: {cls.sample_data_dir}")
 
     @classmethod
     def teardown_class(cls):
         """Clean up test environment."""
         if cls.test_dir.exists():
             shutil.rmtree(cls.test_dir)
-        print(f"\n🧹 Cleaned up test environment: {cls.test_dir}")
+        print(f"\n Cleaned up test environment: {cls.test_dir}")
 
     @classmethod
     def _create_sample_files(cls):
@@ -148,11 +148,11 @@ if __name__ == "__main__":
         for filename, content in files.items():
             (cls.sample_data_dir / filename).write_text(content)
 
-        print(f"📄 Created {len(files)} sample files")
+        print(f" Created {len(files)} sample files")
 
     def test_01_environment_setup(self):
         """Test 1: Verify test environment is properly set up."""
-        print("\n🧪 Test 1: Environment Setup")
+        print("\n Test 1: Environment Setup")
 
         assert self.test_dir.exists(), "Test directory should exist"
         assert self.sample_data_dir.exists(), "Sample data directory should exist"
@@ -162,11 +162,11 @@ if __name__ == "__main__":
             len(sample_files) >= 5
         ), f"Should have at least 5 sample files, found {len(sample_files)}"
 
-        print(f"✅ Environment setup verified - {len(sample_files)} test files ready")
+        print(f" Environment setup verified - {len(sample_files)} test files ready")
 
     def test_02_pipeline_initialization(self):
         """Test 2: Verify pipeline initializes correctly."""
-        print("\n🧪 Test 2: Pipeline Initialization")
+        print("\n Test 2: Pipeline Initialization")
 
         assert self.pipeline is not None, "Pipeline should be initialized"
         assert hasattr(self.pipeline, "templates"), "Pipeline should have templates"
@@ -180,11 +180,11 @@ if __name__ == "__main__":
         ), "Should have vector_store templates"
         assert "llm" in self.pipeline.templates, "Should have llm templates"
 
-        print("✅ Pipeline initialization verified")
+        print(" Pipeline initialization verified")
 
     def test_03_all_chunking_strategies(self):
         """Test 3: Verify all chunking strategies are available and working."""
-        print("\n🧪 Test 3: All Chunking Strategies")
+        print("\n Test 3: All Chunking Strategies")
 
         processing_templates = self.pipeline.templates["processing"]
         expected_strategies = [
@@ -198,7 +198,7 @@ if __name__ == "__main__":
             "advanced",
         ]
 
-        print(f"📋 Available processing templates: {list(processing_templates.keys())}")
+        print(f" Available processing templates: {list(processing_templates.keys())}")
 
         for strategy in expected_strategies:
             assert (
@@ -208,7 +208,7 @@ if __name__ == "__main__":
             assert (
                 "chunking" in strategy_config
             ), f"Strategy {strategy} missing chunking config"
-            print(f"  ✓ {strategy}: {processing_templates[strategy]['name']}")
+            print(f"   {strategy}: {processing_templates[strategy]['name']}")
 
         # Test a few strategies with actual processing
         test_text = (
@@ -246,19 +246,19 @@ if __name__ == "__main__":
                     len(chunks) > 0
                 ), f"Strategy {strategy_name} should produce chunks"
                 working_strategies.append(strategy_name)
-                print(f"  ✅ {strategy_name}: Produced {len(chunks)} chunks")
+                print(f"   {strategy_name}: Produced {len(chunks)} chunks")
 
             except Exception as e:
-                print(f"  ⚠️  {strategy_name}: Error - {str(e)[:100]}")
+                print(f"    {strategy_name}: Error - {str(e)[:100]}")
 
         assert (
             len(working_strategies) >= 2
         ), f"At least 2 strategies should work, got {len(working_strategies)}"
-        print(f"✅ Chunking strategies verified - {len(working_strategies)} working")
+        print(f" Chunking strategies verified - {len(working_strategies)} working")
 
     def test_04_all_vector_store_options(self):
         """Test 4: Verify all vector store options are available."""
-        print("\n🧪 Test 4: Vector Store Options")
+        print("\n Test 4: Vector Store Options")
 
         vector_store_templates = self.pipeline.templates["vector_store"]
         expected_stores = [
@@ -271,20 +271,20 @@ if __name__ == "__main__":
         ]
 
         print(
-            f"📋 Available vector store templates: {list(vector_store_templates.keys())}"
+            f" Available vector store templates: {list(vector_store_templates.keys())}"
         )
 
         for store in expected_stores:
             assert store in vector_store_templates, f"Missing vector store: {store}"
             store_config = vector_store_templates[store]["config"]
             assert "type" in store_config, f"Vector store {store} missing type config"
-            print(f"  ✓ {store}: {vector_store_templates[store]['name']}")
+            print(f"   {store}: {vector_store_templates[store]['name']}")
 
         # Test FAISS stores (most likely to work in test environment)
         faiss_stores = [
             name for name in vector_store_templates.keys() if name.startswith("faiss")
         ]
-        print(f"📊 Testing FAISS stores: {faiss_stores}")
+        print(f" Testing FAISS stores: {faiss_stores}")
 
         for store_name in faiss_stores[:2]:  # Test first 2 FAISS stores
             try:
@@ -296,16 +296,16 @@ if __name__ == "__main__":
 
                 manager = VectorStoreManager(config)
                 manager.get_info()  # Just call for side effects
-                print(f"  ✅ {store_name}: Initialized successfully")
+                print(f"   {store_name}: Initialized successfully")
 
             except Exception as e:
-                print(f"  ⚠️  {store_name}: Error - {str(e)[:100]}")
+                print(f"    {store_name}: Error - {str(e)[:100]}")
 
-        print("✅ Vector store options verified")
+        print(" Vector store options verified")
 
     def test_05_template_variations(self):
         """Test 5: Test different template combinations."""
-        print("\n🧪 Test 5: Template Variations")
+        print("\n Test 5: Template Variations")
 
         templates = self.pipeline.templates
 
@@ -339,23 +339,23 @@ if __name__ == "__main__":
                     assert (
                         template in templates[phase]
                     ), f"Template {template} not found in {phase}"
-                    print(f"    ✓ {phase}: {template}")
+                    print(f"     {phase}: {template}")
                 valid_combinations += 1
 
             except Exception as e:
-                print(f"    ✗ Combination {i} failed: {e}")
+                print(f"     Combination {i} failed: {e}")
 
         assert (
             valid_combinations >= 2
         ), f"At least 2 combinations should be valid, got {valid_combinations}"
         print(
-            f"✅ Template variations verified - "
+            f" Template variations verified - "
             f"{valid_combinations}/{len(test_combinations)} valid"
         )
 
     def test_06_api_key_detection(self):
         """Test 6: API key detection functionality."""
-        print("\n🧪 Test 6: API Key Detection")
+        print("\n Test 6: API Key Detection")
 
         # Test the API key detection method with mock environment
         # This test is completely isolated and doesn't use real API keys
@@ -394,7 +394,7 @@ if __name__ == "__main__":
             assert (
                 result == "openai"
             ), f"No API keys should fallback to openai, got {result}"
-            print(f"  ✓ No API keys: Selected template '{result}' (fallback)")
+            print(f"   No API keys: Selected template '{result}' (fallback)")
 
             # Test with mock OpenRouter key (fake but valid format)
             os.environ[
@@ -402,7 +402,7 @@ if __name__ == "__main__":
             ] = "sk-or-v1-abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef"  # noqa: E501
             result = self.pipeline._detect_best_llm_template()
             assert result == "openrouter", f"Should detect OpenRouter, got {result}"
-            print(f"  ✓ Mock OpenRouter key detected: {result}")
+            print(f"   Mock OpenRouter key detected: {result}")
 
             # Test with both mock keys (should still prefer OpenRouter due to priority)
             os.environ[
@@ -412,13 +412,13 @@ if __name__ == "__main__":
             assert (
                 result == "openrouter"
             ), f"Should prefer OpenRouter due to priority, got {result}"
-            print(f"  ✓ Priority order respected: {result}")
+            print(f"   Priority order respected: {result}")
 
             # Test with only mock OpenAI key
             del os.environ["OPENROUTER_API_KEY"]
             result = self.pipeline._detect_best_llm_template()
             assert result == "openai", f"Should detect OpenAI, got {result}"
-            print(f"  ✓ Mock OpenAI key detected: {result}")
+            print(f"   Mock OpenAI key detected: {result}")
 
             # Test that placeholder/test keys are properly rejected
             os.environ["OPENAI_API_KEY"] = "test-key-placeholder"
@@ -426,7 +426,7 @@ if __name__ == "__main__":
             assert (
                 result == "openai"
             ), f"Should fallback when test key detected, got {result}"
-            print("  ✓ Test/placeholder keys properly rejected")
+            print("   Test/placeholder keys properly rejected")
 
         finally:
             # Restore original environment
@@ -440,11 +440,11 @@ if __name__ == "__main__":
             os.environ.clear()
             os.environ.update(original_env)
 
-        print("✅ API key detection verified (no real API calls made)")
+        print(" API key detection verified (no real API calls made)")
 
     def test_07_input_type_detection(self):
         """Test 7: Input type detection."""
-        print("\n🧪 Test 7: Input Type Detection")
+        print("\n Test 7: Input Type Detection")
 
         test_cases = [
             (str(self.sample_data_dir), ("file", "file_advanced")),
@@ -459,13 +459,13 @@ if __name__ == "__main__":
             assert (
                 result == expected
             ), f"Input '{input_path}' should detect {expected}, got {result}"
-            print(f"  ✓ '{input_path[:50]}...' -> {result}")
+            print(f"   '{input_path[:50]}...' -> {result}")
 
-        print("✅ Input type detection verified")
+        print(" Input type detection verified")
 
     def test_08_cli_help_commands(self):
         """Test 8: CLI help and command availability."""
-        print("\n🧪 Test 8: CLI Commands")
+        print("\n Test 8: CLI Commands")
 
         # Test main CLI help
         try:
@@ -481,12 +481,12 @@ if __name__ == "__main__":
             assert (
                 "neurosync" in result.stdout.lower()
             ), "CLI help should mention neurosync"
-            print("  ✓ Main CLI help accessible")
+            print("   Main CLI help accessible")
 
         except subprocess.TimeoutExpired:
-            print("  ⚠️  CLI help timeout")
+            print("    CLI help timeout")
         except Exception as e:
-            print(f"  ⚠️  CLI help error: {str(e)[:100]}")
+            print(f"    CLI help error: {str(e)[:100]}")
 
         # Test pipeline command help
         try:
@@ -499,18 +499,18 @@ if __name__ == "__main__":
             )
 
             if result.returncode == 0:
-                print("  ✓ Pipeline command help accessible")
+                print("   Pipeline command help accessible")
             else:
-                print(f"  ⚠️  Pipeline help failed: {result.stderr[:100]}")
+                print(f"    Pipeline help failed: {result.stderr[:100]}")
 
         except Exception as e:
-            print(f"  ⚠️  Pipeline help error: {str(e)[:100]}")
+            print(f"    Pipeline help error: {str(e)[:100]}")
 
-        print("✅ CLI commands verified")
+        print(" CLI commands verified")
 
     def test_09_error_handling(self):
         """Test 9: Error handling and edge cases."""
-        print("\n🧪 Test 9: Error Handling")
+        print("\n Test 9: Error Handling")
 
         # Test with non-existent input path
         try:
@@ -519,17 +519,17 @@ if __name__ == "__main__":
                 "file",
                 "file_basic",
             ), "Should default to file for non-existent paths"
-            print("  ✓ Non-existent path handled gracefully")
+            print("   Non-existent path handled gracefully")
         except Exception as e:
-            print(f"  ⚠️  Non-existent path error: {str(e)[:100]}")
+            print(f"    Non-existent path error: {str(e)[:100]}")
 
         # Test with invalid template configurations
         try:
             invalid_config = {"invalid": "config"}
             ProcessingManager(invalid_config)  # Just instantiate for side effects
-            print("  ✓ Invalid config handled (used defaults)")
+            print("   Invalid config handled (used defaults)")
         except Exception as e:
-            print(f"  ✓ Invalid config properly rejected: {str(e)[:100]}")
+            print(f"   Invalid config properly rejected: {str(e)[:100]}")
 
         # Test template substitution with missing values
         try:
@@ -542,15 +542,15 @@ if __name__ == "__main__":
             assert "{missing_key}" in str(
                 result
             ), "Missing substitutions should remain as placeholders"
-            print("  ✓ Missing substitutions handled correctly")
+            print("   Missing substitutions handled correctly")
         except Exception as e:
-            print(f"  ⚠️  Substitution error: {str(e)[:100]}")
+            print(f"    Substitution error: {str(e)[:100]}")
 
-        print("✅ Error handling verified")
+        print(" Error handling verified")
 
     def test_10_mini_pipeline_execution(self):
         """Test 10: Execute a minimal pipeline end-to-end."""
-        print("\n🧪 Test 10: Mini Pipeline Execution")
+        print("\n Test 10: Mini Pipeline Execution")
 
         try:
             # Test ingestion
@@ -569,7 +569,7 @@ if __name__ == "__main__":
                 ]
             }
 
-            print("  📥 Testing ingestion...")
+            print("   Testing ingestion...")
             manager = IngestionManager(ingestion_config)
             results = asyncio.run(manager.ingest_all_sources())
 
@@ -577,7 +577,7 @@ if __name__ == "__main__":
             assert (
                 len(successful_results) > 0
             ), f"Should ingest at least 1 file, got {len(successful_results)}"
-            print(f"    ✅ Ingested {len(successful_results)} files")
+            print(f"     Ingested {len(successful_results)} files")
 
             # Test processing
             processing_config = {
@@ -590,7 +590,7 @@ if __name__ == "__main__":
                 "filtering": {"min_quality_score": 0.0},
             }
 
-            print("  ⚙️  Testing processing...")
+            print("    Testing processing...")
             proc_manager = ProcessingManager(processing_config)
             all_chunks = []
 
@@ -599,7 +599,7 @@ if __name__ == "__main__":
                 all_chunks.extend(chunks)
 
             assert len(all_chunks) > 0, f"Should produce chunks, got {len(all_chunks)}"
-            print(f"    ✅ Processed into {len(all_chunks)} chunks")
+            print(f"     Processed into {len(all_chunks)} chunks")
 
             # Test embedding (if possible)
             try:
@@ -616,7 +616,7 @@ if __name__ == "__main__":
                     "dimension": 384,
                 }
 
-                print("  🧮 Testing embedding pipeline...")
+                print("   Testing embedding pipeline...")
                 embedding_pipeline = EmbeddingPipeline(
                     embedding_config=embedding_config,
                     vector_store_config=vector_store_config,
@@ -630,22 +630,22 @@ if __name__ == "__main__":
                 metrics = embedding_pipeline.get_metrics()
                 vector_count = metrics.get("vector_store", {}).get("count", 0)
                 assert vector_count > 0, f"Should create vectors, got {vector_count}"
-                print(f"    ✅ Created {vector_count} embeddings")
+                print(f"     Created {vector_count} embeddings")
 
             except Exception as e:
-                print(f"    ⚠️  Embedding test skipped: {str(e)[:100]}")
+                print(f"      Embedding test skipped: {str(e)[:100]}")
 
-            print("✅ Mini pipeline execution successful")
+            print(" Mini pipeline execution successful")
 
         except Exception as e:
-            print(f"  ❌ Mini pipeline failed: {str(e)[:100]}")
+            print(f"   Mini pipeline failed: {str(e)[:100]}")
             print(f"     Traceback: {traceback.format_exc()[:200]}")
             # Don't fail the test completely, as this is an integration test
-            print("  ⚠️  Some components may not be available in test environment")
+            print("    Some components may not be available in test environment")
 
     def test_11_template_completeness(self):
         """Test 11: Verify all templates have required fields."""
-        print("\n🧪 Test 11: Template Completeness")
+        print("\n Test 11: Template Completeness")
 
         required_fields = {
             "ingestion": ["name", "description", "config"],
@@ -677,19 +677,19 @@ if __name__ == "__main__":
                         )
 
                         valid_templates += 1
-                        print(f"  ✓ {phase}.{template_name}: Complete")
+                        print(f"   {phase}.{template_name}: Complete")
 
                     except AssertionError as e:
-                        print(f"  ✗ {phase}.{template_name}: {e}")
+                        print(f"   {phase}.{template_name}: {e}")
 
         assert (
             valid_templates == total_templates
         ), f"All templates should be valid: {valid_templates}/{total_templates}"
-        print(f"✅ Template completeness verified - {valid_templates} templates valid")
+        print(f" Template completeness verified - {valid_templates} templates valid")
 
     def test_12_chat_termination_conditions(self):
         """Test 12: Verify chat termination conditions."""
-        print("\n🧪 Test 12: Chat Termination Conditions")
+        print("\n Test 12: Chat Termination Conditions")
 
         # Extract termination words from the pipeline code
         # This is a bit of a hack, but tests the actual implementation
@@ -702,33 +702,33 @@ if __name__ == "__main__":
 
             # Look for termination words in the chat loop
             if "termination_words" in content:
-                print("  ✓ Found termination_words definition in code")
+                print("   Found termination_words definition in code")
 
                 # Check for expected words
                 expected_words = ["quit", "exit", "bye", "goodbye", "stop"]
                 for word in expected_words:
                     if f"'{word}'" in content or f'"{word}"' in content:
-                        print(f"    ✓ Termination word '{word}' found")
+                        print(f"     Termination word '{word}' found")
                     else:
-                        print(f"    ⚠️  Termination word '{word}' not found")
+                        print(f"      Termination word '{word}' not found")
 
             # Check for chat loop improvements
             if "Chat is ready!" in content and (
                 "bye" in content or "goodbye" in content
             ):
-                print("  ✅ Enhanced chat termination implemented")
+                print("   Enhanced chat termination implemented")
             else:
-                print("  ⚠️  Basic chat termination only")
+                print("    Basic chat termination only")
         else:
-            print("  ⚠️  Could not verify chat termination (pipeline file not found)")
+            print("    Could not verify chat termination (pipeline file not found)")
 
-        print("✅ Chat termination conditions verified")
+        print(" Chat termination conditions verified")
 
 
 def run_comprehensive_tests():
     """Run all comprehensive tests and generate a report."""
     print("=" * 80)
-    print("🧪 NEUROSYNC COMPREHENSIVE PIPELINE TEST SUITE")
+    print(" NEUROSYNC COMPREHENSIVE PIPELINE TEST SUITE")
     print("=" * 80)
 
     # Run pytest with this file
@@ -743,8 +743,8 @@ def run_comprehensive_tests():
         "-x",  # Stop on first failure for debugging
     ]
 
-    print(f"🚀 Running comprehensive tests from: {test_file}")
-    print(f"📋 Test arguments: {' '.join(pytest_args)}")
+    print(f" Running comprehensive tests from: {test_file}")
+    print(f" Test arguments: {' '.join(pytest_args)}")
     print("-" * 80)
 
     # Run the tests
@@ -752,9 +752,9 @@ def run_comprehensive_tests():
 
     print("-" * 80)
     if result == 0:
-        print("🎉 ALL TESTS PASSED! NeuroSync pipeline is working correctly.")
+        print(" ALL TESTS PASSED! NeuroSync pipeline is working correctly.")
     else:
-        print("⚠️  Some tests failed. Check the output above for details.")
+        print("  Some tests failed. Check the output above for details.")
 
     print("=" * 80)
     return result
@@ -764,7 +764,7 @@ if __name__ == "__main__":
     # Allow running this file directly for testing
     if len(sys.argv) > 1 and sys.argv[1] == "--quick":
         # Quick test mode - run just a few key tests
-        print("🚀 Running quick test mode...")
+        print(" Running quick test mode...")
         pytest.main(
             [
                 __file__ + "::TestCompleteNeuroSyncPipeline::test_01_environment_setup",

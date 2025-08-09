@@ -1,5 +1,60 @@
 """
-Ingestion manager for orchestrating multiple connectors
+Ingestion manager for orchestrating multiple data source connectors.
+
+This module provides centralized management for the data ingestion phase,
+coordinating multiple connectors to extract data from various sources
+including files, APIs, databases, and cloud storage systems.
+
+Key Features:
+    - Multi-source connector orchestration
+    - Concurrent ingestion with configurable limits
+    - Progress monitoring and error handling
+    - Result caching and persistence
+    - Configuration validation and connector factory
+    - Resumable ingestion with checkpoint support
+
+Classes:
+    IngestionManager: Main orchestrator for multi-source data ingestion
+
+Supported Source Types:
+    - file: Local files and directories
+    - api: REST APIs with authentication
+    - database: SQL databases (PostgreSQL, MySQL, SQLite)
+    - cloud: Cloud storage (S3, GCS, Azure Blob)
+    - web: Web scraping and crawling
+    - stream: Real-time data streams
+
+The manager handles:
+    - Connector lifecycle management
+    - Error recovery and retry logic
+    - Progress tracking and reporting
+    - Result aggregation and validation
+    - Configuration templating and substitution
+    - Resource cleanup and optimization
+
+Example:
+    >>> config = {
+    ...     "sources": [
+    ...         {
+    ...             "name": "docs",
+    ...             "type": "file",
+    ...             "config": {"base_path": "/docs"}
+    ...         },
+    ...         {
+    ...             "name": "api",
+    ...             "type": "api",
+    ...             "config": {"base_url": "https://api.example.com"}
+    ...         }
+    ...     ]
+    ... }
+    >>> manager = IngestionManager(config)
+    >>> results = await manager.ingest_all()
+    >>> print(f"Ingested {len(results)} items")
+
+For configuration examples and connector documentation, see:
+    - docs/ingestion-configuration.md
+    - docs/connector-types.md
+    - examples/ingestion-patterns.py
 """
 
 import asyncio
@@ -25,7 +80,69 @@ from neurosync.ingestion.connectors import (  # noqa: F401
 
 
 class IngestionManager:
-    """Manager for orchestrating data ingestion from multiple sources"""
+    """
+    Manager for orchestrating data ingestion from multiple sources.
+
+    The IngestionManager coordinates the extraction of data from various
+    sources using a plugin-based connector architecture. It handles
+    concurrent processing, error recovery, progress tracking, and result
+    aggregation across multiple data sources.
+
+    Attributes:
+        config (Dict[str, Any]): Ingestion configuration with source definitions
+        logger (Logger): Structured logger for tracking operations
+        connectors (Dict[str, BaseConnector]): Initialized connector instances
+        results_cache (List[IngestionResult]): Cached ingestion results
+
+    Configuration Structure:
+        {
+            "sources": [
+                {
+                    "name": "source_identifier",
+                    "type": "connector_type",
+                    "config": {
+                        "source_specific_settings": "value"
+                    }
+                }
+            ],
+            "global_settings": {
+                "max_concurrent": 5,
+                "timeout": 300,
+                "retry_attempts": 3
+            }
+        }
+
+    Key Capabilities:
+        - Concurrent multi-source ingestion with rate limiting
+        - Automatic connector initialization and validation
+        - Progress monitoring with detailed metrics
+        - Error handling with retry logic and graceful degradation
+        - Result caching and persistence for resume functionality
+        - Configuration validation and template substitution
+
+    Example:
+        >>> config = {
+        ...     "sources": [
+        ...         {
+        ...             "name": "company_docs",
+        ...             "type": "file",
+        ...             "config": {"base_path": "/data/docs", "recursive": True}
+        ...         },
+        ...         {
+        ...             "name": "knowledge_base",
+        ...             "type": "api",
+        ...             "config": {"base_url": "https://kb.company.com/api"}
+        ...         }
+        ...     ]
+        ... }
+        >>> manager = IngestionManager(config)
+        >>> results = await manager.ingest_all()
+        >>>
+        >>> # Process results
+        >>> for result in results:
+        ...     print(f"Source: {result.source_metadata.source_id}")
+        ...     print(f"Items: {len(result.data)}")
+    """
 
     def __init__(self, config: Dict[str, Any]):
         self.config = config

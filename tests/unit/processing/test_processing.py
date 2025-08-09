@@ -341,7 +341,7 @@ class TestCLIEdgeCases:
         """Test CLI with unicode content"""
         unicode_file = self.temp_path / "unicode.txt"
         unicode_file.write_text(
-            "Unicode content: 你好世界 🌍 émojis and accénts", encoding="utf-8"
+            "Unicode content: 你好世界  émojis and accénts", encoding="utf-8"
         )
 
         result = self.runner.invoke(app, ["process", "strategies"])

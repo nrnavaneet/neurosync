@@ -1,5 +1,49 @@
 """
 Serve command for starting the NeuroSync API server and interactive chat.
+
+This module provides CLI commands for deploying and interacting with NeuroSync
+services. It includes functionality for starting the FastAPI server, configuring
+LLM providers, running interactive chat sessions, and performing system health checks.
+
+Key Commands:
+    serve: Start the production FastAPI server
+    chat: Launch interactive chat interface with RAG capabilities
+    config: Configure LLM providers and API keys
+    test: Run connection tests and health checks
+
+Features:
+    - Production-ready FastAPI server deployment
+    - Interactive chat with real-time streaming responses
+    - Intelligent LLM provider configuration and fallbacks
+    - Comprehensive system health monitoring
+    - Environment file management for API keys
+    - Vector store integration and testing
+    - Rich CLI interface with progress indicators
+
+Dependencies:
+    - FastAPI server for REST API endpoints
+    - LLM providers (OpenAI, Anthropic, Cohere, etc.)
+    - Vector stores (FAISS, Qdrant) for retrieval
+    - Embedding models for query processing
+    - Rich CLI for enhanced user experience
+
+Example Usage:
+    # Start production server
+    $ neurosync serve --host 0.0.0.0 --port 8000
+
+    # Interactive configuration
+    $ neurosync serve config
+
+    # Start chat session
+    $ neurosync serve chat
+
+    # Test system health
+    $ neurosync serve test
+
+For deployment configuration and scaling options, see:
+    - docs/deployment.md
+    - docs/api-reference.md
+    - examples/production-setup.py
 """
 import asyncio
 import os
@@ -25,7 +69,36 @@ logger = get_logger(__name__)
 
 
 def update_env_file(env_path: Path, key: str, value: str) -> None:
-    """Update or add key-value pair in .env file."""
+    """
+    Update or add key-value pair in environment file.
+
+    Safely updates environment variables in a .env file, either modifying
+    existing keys or appending new ones. Preserves existing file structure
+    and comments while ensuring clean key-value formatting.
+
+    Args:
+        env_path (Path): Path to the .env file
+        key (str): Environment variable name (without quotes)
+        value (str): Environment variable value (without quotes)
+
+    Behavior:
+        - Creates file if it doesn't exist
+        - Updates existing key in place if found
+        - Appends new key-value pair if not found
+        - Preserves file formatting and comments
+        - Uses format: KEY=value (no quotes or spaces around =)
+
+    Example:
+        >>> from pathlib import Path
+        >>> env_path = Path(".env")
+        >>> update_env_file(env_path, "OPENAI_API_KEY", "sk-...")
+        >>> update_env_file(env_path, "DEBUG", "true")
+
+    Note:
+        This function is atomic - it reads the entire file, modifies it,
+        and writes it back. For large files or high-concurrency scenarios,
+        consider using a more sophisticated approach with file locking.
+    """
     lines = []
     key_found = False
 
@@ -51,7 +124,7 @@ def update_env_file(env_path: Path, key: str, value: str) -> None:
 
 def setup_llm_providers() -> dict:
     """Interactive setup for LLM providers."""
-    console.print("\n[bold blue]🤖 LLM Provider Setup[/bold blue]")
+    console.print("\n[bold blue] LLM Provider Setup[/bold blue]")
     console.print(
         "Configure your preferred LLM providers. "
         "You can skip any provider by pressing Enter."
@@ -98,7 +171,7 @@ def setup_llm_providers() -> dict:
     ]
 
     for provider in provider_configs:
-        console.print(f"\n[yellow]📋 {provider['name']}[/yellow]")
+        console.print(f"\n[yellow] {provider['name']}[/yellow]")
         console.print(f"   {provider['description']}")
         console.print(f"   Get API key: {provider['url']}")
 
@@ -110,10 +183,10 @@ def setup_llm_providers() -> dict:
                 if api_key.strip():
                     providers[provider["name"]] = api_key
                     update_env_file(env_path, provider["key"], api_key)
-                    console.print("   ✅ Updated!")
+                    console.print("    Updated!")
             else:
                 providers[provider["name"]] = existing_key
-                console.print("   ✅ Using existing key")
+                console.print("    Using existing key")
         else:
             api_key = Prompt.ask(
                 "   Enter API key (or press Enter to skip)", password=True, default=""
@@ -121,13 +194,13 @@ def setup_llm_providers() -> dict:
             if api_key.strip():
                 providers[provider["name"]] = api_key
                 update_env_file(env_path, provider["key"], api_key)
-                console.print("   ✅ Saved!")
+                console.print("    Saved!")
             else:
-                console.print("   ⏭️  Skipped")
+                console.print("   ⏭  Skipped")
 
     # Set default model and fallback preferences
     if providers:
-        console.print("\n[green]🎯 Model Preferences[/green]")
+        console.print("\n[green] Model Preferences[/green]")
 
         # Primary model preference
         primary_model = Prompt.ask(
@@ -152,11 +225,11 @@ def setup_llm_providers() -> dict:
             env_path, "LLM_ENABLE_FALLBACK", "true" if enable_fallback else "false"
         )
 
-        console.print("\n[green]✅ LLM providers configured successfully![/green]")
+        console.print("\n[green] LLM providers configured successfully![/green]")
         return providers
     else:
         console.print(
-            "\n[yellow]⚠️  No LLM providers configured. "
+            "\n[yellow]  No LLM providers configured. "
             "Some features may not work.[/yellow]"
         )
         return {}
@@ -199,7 +272,7 @@ async def test_vector_store_connection(settings: Settings) -> bool:
 
 async def interactive_chat(settings: Settings) -> None:
     """Start interactive chat session."""
-    console.print("\n[bold blue]💬 Interactive Chat Mode[/bold blue]")
+    console.print("\n[bold blue] Interactive Chat Mode[/bold blue]")
     console.print("Type 'quit', 'exit', or 'q' to stop chatting")
     console.print("Type '/help' for commands\n")
 
@@ -236,7 +309,7 @@ async def interactive_chat(settings: Settings) -> None:
                 user_input = Prompt.ask("[bold blue]You[/bold blue]")
 
                 if user_input.lower() in ["quit", "exit", "q"]:
-                    console.print("[yellow]👋 Goodbye![/yellow]")
+                    console.print("[yellow] Goodbye![/yellow]")
                     break
 
                 if user_input == "/help":
@@ -314,7 +387,7 @@ async def interactive_chat(settings: Settings) -> None:
                 console.print()  # Add spacing
 
             except KeyboardInterrupt:
-                console.print("\n[yellow]👋 Goodbye![/yellow]")
+                console.print("\n[yellow] Goodbye![/yellow]")
                 break
             except Exception as e:
                 console.print(f"[red]Error: {str(e)}[/red]")
@@ -347,27 +420,27 @@ def server(
                 raise typer.Exit(1)
 
     # Test connections
-    console.print("\n[bold blue]🔍 Testing connections...[/bold blue]")
+    console.print("\n[bold blue] Testing connections...[/bold blue]")
     settings = Settings()
 
     async def test_connections():
         llm_ok = await test_llm_connection(settings)
         vector_ok = await test_vector_store_connection(settings)
 
-        console.print(f"   LLM: {'✅ Ready' if llm_ok else '❌ Failed'}")
-        console.print(f"   Vector Store: {'✅ Ready' if vector_ok else '❌ Failed'}")
+        console.print(f"   LLM: {' Ready' if llm_ok else ' Failed'}")
+        console.print(f"   Vector Store: {' Ready' if vector_ok else ' Failed'}")
 
         if not vector_ok:
             console.print(
-                "[yellow]⚠️  Vector store not ready. "
+                "[yellow]  Vector store not ready. "
                 "Run 'neurosync pipeline run' first.[/yellow]"
             )
 
     asyncio.run(test_connections())
 
     # Start server
-    console.print(f"\n[green]🌐 Starting server at http://{host}:{port}[/green]")
-    console.print(f"📖 API docs: http://{host}:{port}/docs")
+    console.print(f"\n[green] Starting server at http://{host}:{port}[/green]")
+    console.print(f" API docs: http://{host}:{port}/docs")
 
     try:
         import uvicorn
@@ -380,10 +453,10 @@ def server(
             log_level="info",
         )
     except ImportError:
-        console.print("[red]❌ uvicorn not installed. Run: pip install uvicorn[/red]")
+        console.print("[red] uvicorn not installed. Run: pip install uvicorn[/red]")
         raise typer.Exit(1)
     except KeyboardInterrupt:
-        console.print("\n[yellow]👋 Server stopped[/yellow]")
+        console.print("\n[yellow] Server stopped[/yellow]")
 
 
 @app.command()
@@ -393,7 +466,7 @@ def chat(
     """Start interactive chat session."""
     console.print(
         Panel(
-            "[bold blue]💬 NeuroSync Interactive Chat[/bold blue]",
+            "[bold blue] NeuroSync Interactive Chat[/bold blue]",
             subtitle="Chat with your documents using AI",
         )
     )
@@ -402,9 +475,7 @@ def chat(
     if setup:
         providers = setup_llm_providers()
         if not providers:
-            console.print(
-                "[red]❌ No LLM providers configured. Cannot start chat.[/red]"
-            )
+            console.print("[red] No LLM providers configured. Cannot start chat.[/red]")
             raise typer.Exit(1)
 
     # Load settings and start chat
@@ -417,13 +488,13 @@ def config():
     """Configure LLM providers and settings."""
     console.print(
         Panel(
-            "[bold blue]⚙️  NeuroSync Configuration[/bold blue]",
+            "[bold blue]  NeuroSync Configuration[/bold blue]",
             subtitle="Set up LLM providers and preferences",
         )
     )
 
     setup_llm_providers()
-    console.print("\n[green]✅ Configuration complete![/green]")
+    console.print("\n[green] Configuration complete![/green]")
 
 
 @app.command()
@@ -431,7 +502,7 @@ def test():
     """Test LLM and vector store connections."""
     console.print(
         Panel(
-            "[bold blue]🔍 Connection Tests[/bold blue]",
+            "[bold blue] Connection Tests[/bold blue]",
             subtitle="Verify that all services are working",
         )
     )
@@ -441,18 +512,18 @@ def test():
     async def run_tests():
         console.print("\n[blue]Testing LLM connection...[/blue]")
         llm_ok = await test_llm_connection(settings)
-        console.print(f"   {'✅ LLM Ready' if llm_ok else '❌ LLM Failed'}")
+        console.print(f"   {' LLM Ready' if llm_ok else ' LLM Failed'}")
 
         console.print("\n[blue]Testing vector store connection...[/blue]")
         vector_ok = await test_vector_store_connection(settings)
         console.print(
-            f"   {'✅ Vector Store Ready' if vector_ok else '❌ Vector Store Failed'}"
+            f"   {' Vector Store Ready' if vector_ok else ' Vector Store Failed'}"
         )
 
         if llm_ok and vector_ok:
-            console.print("\n[green]🎉 All systems ready![/green]")
+            console.print("\n[green] All systems ready![/green]")
         else:
-            console.print("\n[yellow]⚠️  Some systems need attention.[/yellow]")
+            console.print("\n[yellow]  Some systems need attention.[/yellow]")
             if not vector_ok:
                 console.print("   Run: neurosync pipeline run")
 

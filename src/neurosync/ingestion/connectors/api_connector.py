@@ -1,5 +1,82 @@
 """
-API connector for REST and GraphQL endpoints
+API connector for REST and GraphQL endpoints.
+
+This module provides a comprehensive API connector that can ingest content
+from REST APIs, GraphQL endpoints, and other web-based data sources. It
+supports various authentication methods, automatic retry mechanisms, rate
+limiting, and response format handling for reliable API data ingestion.
+
+Key Features:
+    - Multiple authentication methods (Bearer, Basic, API Key, OAuth)
+    - Automatic retry with exponential backoff for transient failures
+    - Rate limiting and request throttling to respect API limits
+    - Response format detection and parsing (JSON, XML, CSV, plain text)
+    - Pagination support for large datasets
+    - Request/response logging for debugging and monitoring
+    - Concurrent request processing with configurable limits
+    - Error handling with detailed API error context
+
+Supported API Types:
+    REST APIs: Standard HTTP REST endpoints with JSON/XML responses
+    GraphQL: GraphQL queries with schema introspection support
+    Webhooks: Real-time data ingestion from webhook endpoints
+    Streaming APIs: Server-sent events and chunked responses
+    Paginated APIs: Automatic pagination handling for large datasets
+
+Authentication Methods:
+    None: Public APIs without authentication
+    Bearer Token: OAuth2 and JWT token authentication
+    Basic Auth: Username/password HTTP basic authentication
+    API Key: Custom API key headers or query parameters
+    OAuth2: Full OAuth2 flow with token refresh
+
+Configuration Options:
+    base_url: Base URL for all API requests
+    auth_type: Authentication method (none, bearer, basic, api_key, oauth2)
+    auth_token: Bearer token or API key value
+    timeout: Request timeout in seconds
+    max_retries: Maximum retry attempts for failed requests
+    rate_limit: Maximum requests per second
+    headers: Custom HTTP headers for all requests
+    verify_ssl: SSL certificate verification (default: True)
+
+Error Handling:
+    - HTTP error status code handling with detailed error messages
+    - Network timeout and connection error recovery
+    - Rate limit detection and automatic backoff
+    - Invalid response format handling with graceful degradation
+    - Authentication failure detection and clear error reporting
+
+Example Configuration:
+    >>> config = {
+    ...     "base_url": "https://api.example.com/v1",
+    ...     "auth_type": "bearer",
+    ...     "auth_token": "your-jwt-token",
+    ...     "timeout": 30,
+    ...     "max_retries": 3,
+    ...     "rate_limit": 10  # requests per second
+    ... }
+    >>> connector = APIConnector(config)
+
+Usage Patterns:
+    Single Endpoint:
+    >>> async with connector:
+    ...     result = await connector.ingest("/users/123")
+
+    Batch Processing:
+    >>> async with connector:
+    ...     endpoints = ["/users/1", "/users/2", "/users/3"]
+    ...     results = await connector.ingest_batch(endpoints)
+
+    Discovery:
+    >>> async with connector:
+    ...     endpoints = await connector.list_sources()
+    ...     info = await connector.get_source_info(endpoints[0])
+
+For advanced API integration and custom authentication, see:
+    - docs/api-connector-configuration.md
+    - docs/custom-authentication.md
+    - examples/graphql-ingestion.py
 """
 
 import asyncio
@@ -23,7 +100,65 @@ from neurosync.ingestion.base.connector import (
 
 
 class APIConnector(BaseConnector):
-    """Connector for REST and GraphQL API ingestion"""
+    """
+    API connector for ingesting content from REST and GraphQL endpoints.
+
+    This connector provides comprehensive API integration capabilities with
+    support for various authentication methods, automatic error recovery,
+    rate limiting, and response format handling. It's designed for reliable
+    and efficient ingestion from web-based data sources.
+
+    Architecture:
+        The connector uses an HTTP client with configurable timeouts,
+        retry mechanisms, and authentication. It can handle both single
+        requests and batch processing with intelligent rate limiting
+        and concurrent request management.
+
+    Authentication Support:
+        - Bearer Token: JWT and OAuth2 token authentication
+        - Basic Auth: Username/password HTTP basic authentication
+        - API Key: Custom header or query parameter authentication
+        - OAuth2: Full OAuth2 flow with automatic token refresh
+        - Custom: Extensible authentication via header customization
+
+    Request Management:
+        - Configurable timeouts and retry strategies
+        - Exponential backoff for transient failures
+        - Rate limiting to respect API quotas
+        - Request/response logging for debugging
+        - SSL certificate verification controls
+
+    Response Processing:
+        - Automatic content type detection from headers
+        - JSON, XML, CSV, and plain text parsing
+        - Large response streaming and chunking
+        - Error response parsing and context extraction
+        - Metadata extraction from response headers
+
+    Error Handling:
+        - HTTP status code interpretation and retry logic
+        - Network error recovery with intelligent backoff
+        - Authentication failure detection and reporting
+        - Rate limit detection with automatic delays
+        - Detailed error context for troubleshooting
+
+    Performance Features:
+        - Concurrent request processing with limits
+        - Connection pooling and keep-alive optimization
+        - Intelligent batching based on rate limits
+        - Memory-efficient streaming for large responses
+        - Caching support for repeated requests
+
+    Configuration Parameters:
+        base_url: Base URL for API endpoints
+        auth_type: Authentication method identifier
+        auth_token: Token/key value for authentication
+        timeout: Request timeout in seconds
+        max_retries: Maximum retry attempts
+        rate_limit: Requests per second limit
+        headers: Custom HTTP headers
+        verify_ssl: SSL certificate verification
+    """
 
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)

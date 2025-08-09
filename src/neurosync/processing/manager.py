@@ -1,11 +1,130 @@
 """
-Processing Manager to orchestrate text preprocessing, chunking, and quality scoring.
+Processing Manager for orchestrating text preprocessing, chunking, and quality
+scoring.
+
+This module provides the central coordination hub for all text processing
+operations in the NeuroSync pipeline. It orchestrates the transformation of
+raw ingested content through multiple processing stages to produce clean,
+structured, and semantically coherent chunks ready for embedding, indexing,
+and retrieval operations.
+
+System Architecture:
+    The ProcessingManager implements a sophisticated pipeline architecture
+    that coordinates multiple specialized processors in sequence. Each stage
+    can be configured independently, allowing for fine-tuned optimization
+    based on content type, language, and downstream requirements.
+
+Core Processing Pipeline:
+    1. Content Validation: Input quality checks and format validation
+    2. Preprocessing: Multi-stage text cleaning and normalization
+    3. Language Detection: Automatic language identification and optimization
+    4. Chunking: Intelligent content segmentation with multiple strategies
+    5. Quality Scoring: Content value assessment and filtering
+    6. Metadata Enrichment: Comprehensive metadata addition and linking
+    7. Validation: Final quality assurance and consistency checks
+    8. Output Formatting: Standardized result packaging
+
+Advanced Features:
+    - Multi-strategy processing with fallback mechanisms
+    - Configurable pipeline stages with conditional execution
+    - Batch processing optimization for large content volumes
+    - Memory-efficient streaming for large document processing
+    - Quality-driven adaptive processing (adjust based on content type)
+    - Hierarchical chunk relationship modeling
+    - Cross-reference and citation preservation
+    - Language-specific processing optimization
+    - Custom processor plugin architecture
+
+Processing Strategies:
+    Content-Aware: Adapts processing based on detected content type
+    Quality-First: Prioritizes content quality over processing speed
+    Performance-Optimized: Balanced approach for production workloads
+    Research-Grade: Maximum quality with comprehensive analysis
+    Real-Time: Optimized for low-latency streaming applications
+
+Preprocessing Capabilities:
+    HTML Processing: Tag removal, entity decoding, structure preservation
+    Text Normalization: Unicode standardization, whitespace cleanup
+    Language Processing: Script detection, transliteration support
+    Format Conversion: Multiple input formats to standardized text
+    Content Extraction: Tables, lists, code blocks, and special elements
+    Quality Enhancement: Spell checking, grammar validation, readability
+
+Chunking Algorithms:
+    Recursive Chunker: Hierarchical splitting with delimiter prioritization
+    Semantic Chunker: NLP-based boundary detection with coherence scoring
+    Document Structure Chunker: Format-aware splitting respecting layout
+    Sliding Window Chunker: Overlapping windows for context preservation
+    Hierarchical Chunker: Parent-child relationships with structure awareness
+    Adaptive Chunker: Dynamic strategy selection based on content analysis
+
+Quality Assessment:
+    Content Quality Scoring: Readability, completeness, coherence metrics
+    Information Density: Content value and uniqueness assessment
+    Language Quality: Grammar, spelling, and fluency evaluation
+    Structural Quality: Format consistency and organization scoring
+    Relevance Filtering: Topic relevance and content filtering
+
+Performance Optimization:
+    - Asynchronous processing with configurable concurrency
+    - Memory-efficient streaming for large documents
+    - Intelligent caching of preprocessing results
+    - Batch optimization for similar content types
+    - Pipeline parallelization where dependencies allow
+    - Resource monitoring and adaptive throttling
+
+Error Handling and Recovery:
+    - Graceful degradation for partial processing failures
+    - Detailed error context and recovery suggestions
+    - Automatic fallback to simpler processing strategies
+    - Comprehensive logging for debugging and monitoring
+    - Progress tracking for long-running operations
+
+Configuration System:
+    The manager supports extensive configuration for all processing stages:
+    - Per-stage parameter tuning
+    - Content-type specific optimizations
+    - Language-specific processing rules
+    - Quality thresholds and filtering criteria
+    - Performance vs. quality trade-off settings
+
+Integration Points:
+    - Ingestion system for raw content input
+    - Embedding systems for processed chunk output
+    - Storage systems for intermediate result caching
+    - Monitoring systems for performance tracking
+    - Configuration management for dynamic settings
+
+Example Usage:
+    >>> config = {
+    ...     "preprocessing": {"strategy": "content_aware"},
+    ...     "chunking": {"strategy": "semantic", "max_size": 1000},
+    ...     "quality": {"min_score": 0.7, "enable_filtering": True}
+    ... }
+    >>> manager = ProcessingManager(config)
+    >>> async with manager:
+    ...     result = await manager.process_content(content, metadata)
+
+Classes:
+    ProcessingManager: Main orchestrator for text processing operations
+    ProcessingResult: Structured output container for processed content
+    ProcessingConfig: Configuration management for pipeline settings
+
+For advanced configuration and custom processor development, see:
+    - docs/processing-configuration.md
+    - docs/custom-processors.md
+    - examples/advanced-processing-pipelines.py
+
+Author: NeuroSync Team
+Created: 2025
+Version: 2.0
+License: MIT
 """
 
 from typing import Any, Dict, List
 
 from neurosync.core.logging.logger import get_logger
-from neurosync.ingestion.base import IngestionResult
+from neurosync.ingestion.base.connector import IngestionResult
 from neurosync.processing.base import BaseChunker, BasePreprocessor, Chunk
 from neurosync.processing.chunking.document_structure_chunker import (
     DocumentStructureAwareChunker,
@@ -25,11 +144,101 @@ from neurosync.processing.preprocessing.language_detector import detect_language
 
 logger = get_logger(__name__)
 
+"""
+
+Quality Metrics:
+    - Content density and information value
+    - Language quality and coherence
+    - Structural completeness and formatting
+    - Semantic richness and keyword diversity
+
+Example:
+    >>> config = {
+    ...     "preprocessing": [
+    ...         {"name": "html_cleaner", "enabled": True},
+    ...         {"name": "whitespace_normalizer", "enabled": True}
+    ...     ],
+    ...     "chunking": {
+    ...         "strategy": "recursive",
+    ...         "chunk_size": 512,
+    ...         "chunk_overlap": 50
+    ...     }
+    ... }
+    >>> manager = ProcessingManager(config)
+    >>> chunks = manager.process_results(ingestion_results)
+    >>> print(f"Generated {len(chunks)} chunks")
+
+For configuration examples and strategy documentation, see:
+    - docs/processing-configuration.md
+    - docs/chunking-strategies.md
+    - examples/processing-configs.yaml
+"""
+
 
 class ProcessingManager:
     """
-    Orchestrates the entire processing pipeline from raw ingested content to
-    a list of clean, structured Chunk objects.
+    Orchestrates the complete text processing pipeline.
+
+    The ProcessingManager is the central coordinator for transforming raw
+    ingested content into clean, structured chunks optimized for embedding
+    and retrieval. It manages a configurable pipeline of preprocessing
+    steps, chunking strategies, and quality assessment mechanisms.
+
+    Attributes:
+        config (Dict[str, Any]): Processing configuration with strategy settings
+        preprocessors (List[BasePreprocessor]): Ordered list of text preprocessors
+        chunker (BaseChunker): Configured chunking strategy instance
+
+    The manager handles the complete processing workflow:
+        1. Raw content validation and preparation
+        2. Sequential preprocessing with configurable steps
+        3. Language detection and optimization
+        4. Content chunking with appropriate strategy
+        5. Quality assessment and scoring
+        6. Metadata enrichment and relationship mapping
+        7. Final validation and output preparation
+
+    Configuration Structure:
+        {
+            "preprocessing": [
+                {"name": "html_cleaner", "enabled": True},
+                {"name": "whitespace_normalizer", "enabled": True}
+            ],
+            "chunking": {
+                "strategy": "recursive",
+                "chunk_size": 512,
+                "chunk_overlap": 50,
+                "min_chunk_size": 100
+            },
+            "quality": {
+                "min_score": 0.3,
+                "language_filter": ["en", "es"],
+                "content_filters": ["length", "diversity"]
+            }
+        }
+
+    Key Capabilities:
+        - Multi-stage preprocessing with error handling
+        - Adaptive chunking based on content characteristics
+        - Quality-based filtering with configurable thresholds
+        - Hierarchical chunk relationships for context preservation
+        - Batch processing optimization for large datasets
+        - Comprehensive metadata tracking and enrichment
+
+    Example:
+        >>> config = {
+        ...     "preprocessing": [{"name": "html_cleaner", "enabled": True}],
+        ...     "chunking": {"strategy": "recursive", "chunk_size": 512}
+        ... }
+        >>> manager = ProcessingManager(config)
+        >>>
+        >>> # Process ingestion results
+        >>> chunks = manager.process_results(ingestion_results)
+        >>>
+        >>> # Process individual content
+        >>> content_chunks = manager.process_content("Raw text content...")
+        >>>
+        >>> print(f"Generated {len(chunks)} high-quality chunks")
     """
 
     def __init__(self, config: Dict[str, Any]):
@@ -91,7 +300,7 @@ class ProcessingManager:
             )
         else:
             logger.warning(
-                f"Unknown chunking strategy '{strategy}'. Defaulting to recursive."
+                f"Unknown chunking strategy '{strategy}'. " f"Defaulting to recursive."
             )
             return RecursiveChunker(chunk_size, chunk_overlap)
 
@@ -166,6 +375,6 @@ class ProcessingManager:
             chunks.append(chunk)
 
         logger.info(
-            f"Processed {ingestion_result.source_id} into {len(chunks)} chunks."
+            f"Processed {ingestion_result.source_id} " f"into {len(chunks)} chunks."
         )
         return chunks

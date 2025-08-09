@@ -2,52 +2,44 @@
 
 **AI-Native ETL Pipeline for RAG and LLM Applications**
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
+[![Build Status](https://github.com/your-org/neurosync/workflows/CI/badge.svg)](https://github.com/your-org/neurosync/actions)
+[![Documentation](https://img.shields.io/badge/docs-available-brightgreen.svg)](https://neurosync.readthedocs.io)
+[![PyPI](https://img.shields.io/pypi/v/neurosync.svg)](https://pypi.org/project/neurosync/)
+
 NeuroSync is a comprehensive, production-ready ETL pipeline specifically designed for Retrieval-Augmented Generation (RAG) and Large Language Model (LLM) applications. Build powerful AI applications from any data source with a single command.
 
-## Quick Start
+## 🚀 Quick Start
 
 ```bash
 # Install NeuroSync
-pip install neurosync
+pip install -e .
 
-# Process any data source with one command
-neurosync run /path/to/your/data
+# Process your data and start an AI-powered chat
+neurosync process data/ --output processed/
+neurosync embed processed/ --batch-size 32
+neurosync serve api --host 0.0.0.0 --port 8000
 
-# That's it! NeuroSync handles:
-# Data ingestion from any source
-# Intelligent processing and chunking
-# Embedding generation
-# Vector store creation
-# LLM setup and interactive chat
+# Or use the all-in-one pipeline
+neurosync pipeline run data/ --serve --interactive
 ```
 
-## 🎯 Why NeuroSync?
+## ⭐ Key Features
 
-### **One Command, Complete Pipeline**
-```bash
-# Traditional approach (multiple tools, complex setup)
-# Step 1: Write ingestion scripts
-# Step 2: Set up processing pipeline
-# Step 3: Configure embedding service
-# Step 4: Set up vector database
-# Step 5: Integrate LLM providers
-# Step 6: Build chat interface
+### **Complete AI Pipeline**
+- **Data Ingestion**: Multi-format support (PDF, DOCX, TXT, HTML, JSON, CSV)
+- **Intelligent Processing**: Semantic chunking with overlap strategies
+- **Vector Embeddings**: Multiple providers (OpenAI, HuggingFace, Sentence Transformers)
+- **Vector Storage**: Weaviate, Qdrant, Pinecone, Chroma integrations
+- **LLM Integration**: OpenAI, Anthropic, HuggingFace models
+- **API Server**: RESTful API with real-time streaming
 
-# NeuroSync approach (one command)
-neurosync run /your/data --auto
-# 🎉 Done! Chat-ready AI application in minutes
-```
-
-### **Intelligent Auto-Detection**
-NeuroSync automatically detects your data type and selects optimal configurations:
-
-- **📁 Files/Directories** → Intelligent file processing with format detection
-- **APIs** → Rate-limited ingestion with authentication support
-- **Databases** → Optimized queries for PostgreSQL, MySQL, SQLite
-- **Cloud Storage** → S3, GCS, Azure Blob integration
-
-### **Production-Ready from Day One**
-- **Auto-scaling**: Handles datasets from KB to TB
+### **Production-Ready Architecture**
+- **Scalable**: Docker and Kubernetes deployment ready
+- **Monitoring**: Prometheus metrics and health checks
+- **Configurable**: YAML-based configuration with environment overrides
+- **Extensible**: Plugin architecture for custom components
 - **Error Resilience**: Robust error handling and recovery
 - **Monitoring**: Real-time metrics and performance tracking
 - **Security**: Encryption, authentication, and audit logging
@@ -56,183 +48,289 @@ NeuroSync automatically detects your data type and selects optimal configuration
 
 ### **1. Universal Data Ingestion**
 ```bash
-# Files and directories
-neurosync run /docs/technical-manuals/
+## 📖 Documentation
 
-# REST APIs
-neurosync run https://api.company.com/knowledge-base
+- **[Installation Guide](docs/installation.md)**: Complete setup instructions
+- **[User Guide](docs/user-guide.md)**: Step-by-step tutorials and examples
+- **[Architecture Guide](docs/architecture.md)**: System design and components
+- **[API Reference](docs/api-reference.md)**: Complete CLI and API documentation
+- **[Contributing](docs/contributing/README.md)**: Development guidelines
+- **[FAQ](docs/faq.md)**: Frequently asked questions
+- **[Deployment](docs/deployment/production.md)**: Production deployment guide
 
-# Databases
-neurosync run postgresql://user:pass@host:5432/knowledge_db
+## 🛠️ CLI Usage
 
-# Multiple sources
-neurosync run config/multi-source.yaml
+### Data Processing
+```bash
+# Process documents with custom chunking
+neurosync process data/ \
+  --output processed/ \
+  --chunk-size 1000 \
+  --overlap 100 \
+  --format json
+
+# Generate embeddings with specific model
+neurosync embed processed/ \
+  --provider openai \
+  --model text-embedding-ada-002 \
+  --batch-size 32
+
+# Store in vector database
+neurosync store processed/ \
+  --vector-db weaviate \
+  --host localhost:8080 \
+  --index-name documents
 ```
 
-### **2. Intelligent Processing**
-- **Semantic Chunking**: Preserves meaning across chunk boundaries
-- **Quality Scoring**: AI-powered content quality assessment
-- **Deduplication**: Remove redundant content automatically
-- **Language Detection**: Multi-language support with optimization
-
-### **3. Advanced Embeddings**
-- **HuggingFace Models**: 100+ pre-trained models
-- **OpenAI Integration**: Latest embedding models (ada-002, text-embedding-3)
-- **⚡ Batch Processing**: Optimized for high-throughput
-- **💾 Smart Caching**: Avoid recomputing existing embeddings
-
-### **4. Scalable Vector Storage**
-- **FAISS Integration**: Multiple index types (Flat, HNSW, IVF)
-- **Qdrant Support**: Production vector database
-- **Hybrid Search**: Combine dense and sparse retrieval
-- **Versioning**: Built-in backup and rollback capabilities
-
-### **5. Multi-LLM Integration**
-- **OpenAI**: GPT-3.5, GPT-4, GPT-4o
-- **Anthropic**: Claude 3 (Haiku, Sonnet, Opus)
-- **Cohere**: Command and Chat models
-- **Google**: Gemini Pro and Ultra
-- **Auto-Fallback**: Seamless provider switching
-
-## Template System
-
-NeuroSync uses intelligent templates that adapt to your needs:
-
-### **Processing Templates**
-| Template | Use Case | Description |
-|----------|----------|-------------|
-| `basic` | Quick prototyping | Fast recursive chunking |
-| `advanced` | Production quality | Semantic-aware with quality scoring |
-| `document_aware` | Structured documents | Respects sections and boundaries |
-| `code_aware` | Source code | Function and class preservation |
-
-### **Embedding Templates**
-| Template | Model | Speed | Quality | Best For |
-|----------|-------|-------|---------|----------|
-| `sshuggingface_fast` | all-MiniLM-L6-v2 | ⚡⚡⚡ | ⭐⭐ | Prototyping |
-| `huggingface_quality` | all-mpnet-base-v2 | ⚡⚡ | ⭐⭐⭐ | Production |
-| `openai` | text-embedding-3-small | ⚡ | ⭐⭐⭐⭐ | High quality |
-| `openai_large` | text-embedding-3-large | ⚡ | ⭐⭐⭐⭐⭐ | Maximum quality |
-
-### **Vector Store Templates**
-| Template | Index | Speed | Memory | Capacity |
-|----------|-------|-------|---------|----------|
-| `faiss_flat` | Flat | ⚡⚡⚡ | 📦📦 | 100K vectors |
-| `faiss_hnsw` | HNSW | ⚡⚡ | 📦📦📦 | 1M vectors |
-| `faiss_ivf` | IVF | ⚡ | 📦📦📦📦 | 100M+ vectors |
-| `qdrant` | Qdrant | ⚡⚡ | 📦📦📦📦📦 | Production scale |
-
-## 🛠️ Installation
-
-### **Quick Install**
+### API Server
 ```bash
-pip install neurosync
+# Start API server
+neurosync serve api \
+  --host 0.0.0.0 \
+  --port 8000 \
+  --workers 4
+
+# Start with specific configuration
+neurosync serve api \
+  --config config/production.yaml \
+  --log-level INFO
 ```
 
-### **Development Install**
+### Health and Status
 ```bash
-git clone https://github.com/nrnavaneet/neurosync.git
+# Check system health
+neurosync status health
+
+# View configuration
+neurosync config show
+
+# Validate configuration
+neurosync config validate config/custom.yaml
+```
+
+## 🏗️ Architecture
+
+NeuroSync follows a modular microservices architecture:
+
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Data Sources  │    │   Processing    │    │   Vector Store  │
+│                 │───▶│                 │───▶│                 │
+│ Files, APIs,    │    │ Chunking,       │    │ Weaviate,       │
+│ Databases       │    │ Embedding       │    │ Qdrant, etc.    │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+                                │
+                                ▼
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   API Server    │    │   LLM Service   │    │   Monitoring    │
+│                 │───▶│                 │    │                 │
+│ REST, GraphQL,  │    │ OpenAI,         │    │ Metrics,        │
+│ WebSocket       │    │ Anthropic, etc. │    │ Logging, Health │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+```
+
+### Core Components
+
+- **Ingestion Engine**: Multi-format data ingestion with smart detection
+- **Processing Pipeline**: Configurable text processing and chunking
+- **Embedding Service**: Multiple provider support with batching
+- **Vector Storage**: Pluggable vector database integrations
+- **LLM Gateway**: Multi-provider LLM access with fallback
+- **API Layer**: RESTful API with real-time capabilities
+
+## 🔧 Configuration
+
+NeuroSync uses YAML configuration files with environment variable overrides:
+
+```yaml
+# config/config.yaml
+log_level: INFO
+workers: 4
+
+# Data processing configuration
+processing:
+  chunk_size: 1000
+  overlap: 100
+  strategy: semantic
+
+# Embedding configuration
+embedding:
+  provider: openai
+  model: text-embedding-ada-002
+  batch_size: 32
+
+# LLM configuration
+llm:
+  provider: openai
+  model: gpt-4
+  temperature: 0.1
+
+# Vector database configuration
+storage:
+  vector_db: weaviate
+  connection_string: http://localhost:8080
+  index_name: neurosync_documents
+```
+
+### Environment Variables
+```bash
+# API keys
+export OPENAI_API_KEY="your-openai-key"
+export ANTHROPIC_API_KEY="your-anthropic-key"
+
+# Configuration overrides
+export NEUROSYNC_LOG_LEVEL=DEBUG
+export NEUROSYNC_WORKERS=8
+export NEUROSYNC_EMBEDDING_PROVIDER=huggingface
+```
+
+## 🚢 Deployment
+
+### Docker
+```bash
+# Build and run
+docker build -t neurosync .
+docker run -p 8000:8000 -e OPENAI_API_KEY=your-key neurosync
+
+# Using docker-compose
+docker-compose up -d
+```
+
+### Kubernetes
+```bash
+# Deploy to Kubernetes
+kubectl apply -f k8s/
+
+# Scale deployment
+kubectl scale deployment neurosync --replicas=3
+```
+
+### Cloud Platforms
+```bash
+# Google Cloud Run
+gcloud run deploy neurosync --image gcr.io/project/neurosync
+
+# AWS ECS
+aws ecs create-service --cluster neurosync --service-name neurosync
+
+# Azure Container Instances
+az container create --name neurosync --image neurosync:latest
+```
+## 🤝 Contributing
+
+We welcome contributions from the community! Here's how you can help:
+
+### Development Setup
+```bash
+# Clone repository
+git clone https://github.com/your-org/neurosync.git
 cd neurosync
+
+# Install development dependencies
+pip install -r requirements-dev.txt
 pip install -e .
+
+# Run tests
+pytest tests/
+
+# Run quality checks
+black src/ tests/
+isort src/ tests/
+flake8 src/ tests/
+mypy src/
 ```
 
-### **Docker Install**
+### Ways to Contribute
+- **Bug Reports**: Found an issue? Report it on GitHub
+- **Feature Requests**: Have an idea? We'd love to hear it
+- **Code Contributions**: Submit pull requests for fixes and features
+- **Documentation**: Help improve our docs and examples
+- **Testing**: Add test cases and improve coverage
+
+See [Contributing Guide](docs/contributing/README.md) for detailed instructions.
+
+## 📈 Performance
+
+### Benchmarks
+- **Processing Speed**: 100-500 documents/minute
+- **Embedding Generation**: 1000-5000 texts/minute
+- **API Response Time**: <100ms for simple queries
+- **Memory Usage**: 2-8GB depending on models and batch size
+
+### Optimization Tips
 ```bash
-docker pull neurosync/neurosync:latest
-docker run -it neurosync/neurosync neurosync run /data
+# Increase batch size for better throughput
+neurosync embed data/ --batch-size 64
+
+# Use GPU acceleration
+neurosync embed data/ --device cuda
+
+# Enable parallel processing
+neurosync process data/ --workers 8 --parallel
+
+# Use caching for repeated operations
+neurosync embed data/ --cache-embeddings
 ```
 
-## Usage Examples
+## 🛡️ Security
 
-### **Interactive Mode (Recommended)**
+- **API Key Management**: Secure storage and environment variable support
+- **Input Validation**: Comprehensive input sanitization
+- **Rate Limiting**: Built-in protection against abuse
+- **TLS/SSL**: HTTPS support for production deployments
+- **Audit Logging**: Comprehensive security event logging
+
+See [Security Policy](SECURITY.md) for details.
+
+## 📊 Monitoring
+
+### Health Checks
 ```bash
-neurosync run /path/to/documents
-```
-- Guided template selection for each phase
-- API key collection and validation
-- Real-time progress and metrics
-- Interactive chat interface
+# System health
+neurosync status health
 
-### **Automatic Mode (Fast)**
-```bash
-neurosync run /path/to/documents --auto
-```
-- Smart defaults for all components
-- Minimal user interaction
-- Optimized for CI/CD pipelines
+# Component status
+neurosync status components
 
-### **Custom Output Directory**
-```bash
-neurosync run /data --output-dir ./my-rag-project
-```
-- Organized project structure
-- Reusable configurations
-- Version control friendly
-
-## 🔧 Advanced Configuration
-
-### **Individual Phase Commands**
-For fine-grained control, use individual commands:
-
-```bash
-# Phase 1: Ingestion
-neurosync ingest file /docs --output ingested.json
-
-# Phase 2: Processing
-neurosync process file ingested.json --strategy advanced --output processed.json
-
-# Phase 3: Embeddings & Vector Store
-neurosync vector-store build processed.json embedding_config.json vector_config.json
-
-# Phase 4: Search & Query
-neurosync vector-store search "your query" embedding_config.json vector_config.json
-
-# Phase 5: Serve API
-neurosync serve api embedding_config.json vector_config.json
+# Performance metrics
+neurosync status metrics
 ```
 
-### **Configuration Files**
-```bash
-# Generate configuration templates
-neurosync vector-store create-config embedding --model-type openai
-neurosync vector-store create-config vector-store --store-type qdrant
-
-# Use custom configurations
-neurosync run /data --config custom-pipeline.yaml
+### Prometheus Integration
+```yaml
+# Enable metrics export
+monitoring:
+  prometheus:
+    enabled: true
+    port: 9090
+    path: /metrics
 ```
 
-## 🎯 Use Cases
+## 📜 License
 
-### **Knowledge Management**
-Build intelligent knowledge bases from:
-- Technical documentation
-- Company wikis and internal docs
-- Research papers and publications
-- Training materials and guides
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-### **Developer Tools**
-Create code-aware applications:
-- Code documentation search
-- API reference chatbots
-- Codebase Q&A systems
-- Technical support assistants
+## 🙏 Acknowledgments
 
-### **Enterprise Applications**
-Power business intelligence:
-- Customer support knowledge bases
-- Product documentation systems
-- Internal training assistants
-- Compliance and policy Q&A
+- **OpenAI** for providing excellent embedding and LLM APIs
+- **HuggingFace** for the transformers library and model ecosystem
+- **Vector database providers** for integration support
+- **Open source community** for tools and libraries that make NeuroSync possible
 
-### **Research & Analysis**
-Accelerate research workflows:
-- Literature review assistants
-- Data analysis companions
-- Hypothesis generation tools
-- Citation and reference systems
+## 📞 Support
+
+- **Documentation**: [docs/](docs/)
+- **GitHub Issues**: [Report bugs and request features](https://github.com/your-org/neurosync/issues)
+- **Community**: Join our [Discord](https://discord.gg/neurosync) or [Slack](https://neurosync.slack.com)
+- **Enterprise Support**: Contact us at enterprise@neurosync.dev
 
 ---
 
-**Built with by the NeuroSync team**
+**🚀 Ready to build your next AI application? Start with NeuroSync today!**
+
+```bash
+pip install -e .
+neurosync process your-data/ --interactive
+```
 
 *Transform any data into intelligent, conversational AI applications with NeuroSync.*

@@ -1,5 +1,64 @@
 """
-CLI commands for managing and interacting with the vector store.
+CLI commands for managing and interacting with vector stores.
+
+This module provides comprehensive command-line tools for vector store
+management, including building indexes, querying embeddings, configuration
+management, and performance optimization. It supports multiple vector
+store backends and provides utilities for backup, restoration, and monitoring.
+
+Key Commands:
+    build: Create vector indexes from processed text chunks
+    search: Semantic search with configurable parameters
+    config: Generate and manage vector store configurations
+    backup: Create versioned backups of vector indexes
+    restore: Restore from backup versions
+    optimize: Performance optimization and index maintenance
+    stats: Index statistics and performance metrics
+
+Features:
+    - Multi-backend support (FAISS, Qdrant, Chroma)
+    - Batch processing with progress monitoring
+    - Semantic search with similarity scoring
+    - Configuration templating and validation
+    - Backup and versioning system
+    - Performance optimization tools
+    - Index statistics and monitoring
+    - Rich CLI interface with formatted output
+
+Supported Vector Stores:
+    - FAISS: High-performance similarity search
+    - Qdrant: Production-scale vector database
+    - Chroma: Developer-friendly vector store
+    - In-memory: Fast development and testing
+
+Vector Store Operations:
+    - Index creation and updates
+    - Similarity search and retrieval
+    - Metadata filtering and faceted search
+    - Batch operations for large datasets
+    - Index optimization and compression
+    - Backup and disaster recovery
+
+Example Usage:
+    # Build vector index from chunks
+    $ neurosync vector-store build chunks.json embedding.yaml store.yaml
+
+    # Semantic search
+    $ neurosync vector-store search "machine learning concepts" --top-k 10
+
+    # Generate configuration
+    $ neurosync vector-store config --type faiss --output store.yaml
+
+    # Create backup
+    $ neurosync vector-store backup --version v1.0
+
+    # Performance optimization
+    $ neurosync vector-store optimize --method compress
+
+For configuration examples and performance tuning, see:
+    - docs/vector-stores.md
+    - docs/search-optimization.md
+    - examples/vector-store-configs.yaml
 """
 import json
 import warnings
@@ -171,7 +230,7 @@ def search(
 
     # Create search query panel
     query_panel = Panel(
-        Text(query, style="bold white"), title="🔍 Search Query", border_style="cyan"
+        Text(query, style="bold white"), title=" Search Query", border_style="cyan"
     )
     console.print(query_panel)
 
@@ -187,7 +246,7 @@ def search(
     rprint(f"\n[bold green]Found {len(results)} results[/bold green]")
 
     table = Table(
-        title=f"🎯 Top {len(results)} Search Results",
+        title=f" Top {len(results)} Search Results",
         show_header=True,
         header_style="bold magenta",
     )
@@ -260,7 +319,7 @@ def create_config(
 
                     shutil.copy(default_file, output_file)
                     rprint(
-                        "[bold green]✅ Created embedding config from template: "
+                        "[bold green] Created embedding config from template: "
                         f"{output_file}[/bold green]"
                     )
                     return
@@ -271,11 +330,11 @@ def create_config(
 
                     shutil.copy(default_file, output_file)
                     rprint(
-                        "[bold green]✅ Created embedding config from template: "
+                        "[bold green] Created embedding config from template: "
                         f"{output_file}[/bold green]"
                     )
                     rprint(
-                        "[bold yellow]⚠️  Don't forget to update your OpenAI "
+                        "[bold yellow]  Don't forget to update your OpenAI "
                         "API key![/bold yellow]"
                     )
                     return
@@ -297,7 +356,7 @@ def create_config(
                 }
             else:
                 rprint(
-                    "[bold red]❌ Invalid model type. Use 'huggingface' or "
+                    "[bold red] Invalid model type. Use 'huggingface' or "
                     "'openai'.[/bold red]"
                 )
                 raise typer.Exit(1)
@@ -310,7 +369,7 @@ def create_config(
 
                     shutil.copy(default_file, output_file)
                     rprint(
-                        "[bold green]✅ Created vector store config from "
+                        "[bold green] Created vector store config from "
                         f"template: {output_file}[/bold green]"
                     )
                     return
@@ -321,7 +380,7 @@ def create_config(
 
                     shutil.copy(default_file, output_file)
                     rprint(
-                        "[bold green]✅ Created vector store config from "
+                        "[bold green] Created vector store config from "
                         f"template: {output_file}[/bold green]"
                     )
                     return
@@ -351,7 +410,7 @@ def create_config(
                 }
             else:
                 rprint(
-                    "[bold red]❌ Invalid store type. Use 'faiss' or "
+                    "[bold red] Invalid store type. Use 'faiss' or "
                     "'qdrant'.[/bold red]"
                 )
                 raise typer.Exit(1)
@@ -365,14 +424,14 @@ def create_config(
             }
         else:
             rprint(
-                "[bold red]❌ Invalid config type. Use 'embedding', "
+                "[bold red] Invalid config type. Use 'embedding', "
                 "'vector-store', or 'hybrid'.[/bold red]"
             )
             raise typer.Exit(1)
 
         with open(output_file, "w") as f:
             json.dump(config, f, indent=2)
-        rprint(f"[bold green]✅ Created {type} config at {output_file}[/bold green]")
+        rprint(f"[bold green] Created {type} config at {output_file}[/bold green]")
 
 
 @app.command()
@@ -384,17 +443,17 @@ def list_defaults():
     )
 
     if not config_dir.exists():
-        rprint("[bold red]❌ Default configuration directory not found[/bold red]")
+        rprint("[bold red] Default configuration directory not found[/bold red]")
         return
 
     defaults = list(config_dir.glob("*.json"))
 
     if not defaults:
-        rprint("[bold yellow]⚠️  No default configurations found[/bold yellow]")
+        rprint("[bold yellow]  No default configurations found[/bold yellow]")
         return
 
     table = Table(
-        title="📋 Available Default Configurations",
+        title=" Available Default Configurations",
         show_header=True,
         header_style="bold magenta",
     )
@@ -434,7 +493,7 @@ def list_defaults():
 
     # Add usage instructions
     usage_panel = Panel(
-        "💡 [bold]Usage Tips:[/bold]\n\n"
+        " [bold]Usage Tips:[/bold]\n\n"
         "• Use [cyan]neurosync vector-store create-config embedding[/cyan] "
         "with [green]--use-defaults[/green]\n"
         "• Use [cyan]neurosync vector-store create-config vector-store[/cyan] "
@@ -495,11 +554,11 @@ def backup(
     try:
         backup_id = pipeline.vector_store_manager.create_backup(description)
         if backup_id:
-            console.print(f"✅ Created backup: {backup_id}", style="green")
+            console.print(f" Created backup: {backup_id}", style="green")
         else:
-            console.print("❌ Versioning not enabled", style="yellow")
+            console.print(" Versioning not enabled", style="yellow")
     except Exception as e:
-        console.print(f"❌ Failed to create backup: {e}", style="red")
+        console.print(f" Failed to create backup: {e}", style="red")
         raise typer.Exit(1)
 
 
@@ -525,9 +584,9 @@ def restore(
 
     try:
         pipeline.vector_store_manager.restore_backup(version_id)
-        console.print(f"✅ Restored from backup: {version_id}", style="green")
+        console.print(f" Restored from backup: {version_id}", style="green")
     except Exception as e:
-        console.print(f"❌ Failed to restore backup: {e}", style="red")
+        console.print(f" Failed to restore backup: {e}", style="red")
         raise typer.Exit(1)
 
 
@@ -553,7 +612,7 @@ def list_backups(
     backups = pipeline.vector_store_manager.list_backups()
 
     if not backups:
-        console.print("📝 No backups found", style="yellow")
+        console.print(" No backups found", style="yellow")
         return
 
     table = Table(title="Available Backups")
@@ -587,11 +646,11 @@ def optimize(
     pipeline = EmbeddingPipeline(embedding_config, vector_store_config)
 
     try:
-        console.print("🔧 Optimizing vector store...", style="blue")
+        console.print(" Optimizing vector store...", style="blue")
         pipeline.vector_store_manager.optimize()
-        console.print("✅ Vector store optimized", style="green")
+        console.print(" Vector store optimized", style="green")
     except Exception as e:
-        console.print(f"❌ Failed to optimize: {e}", style="red")
+        console.print(f" Failed to optimize: {e}", style="red")
         raise typer.Exit(1)
 
 

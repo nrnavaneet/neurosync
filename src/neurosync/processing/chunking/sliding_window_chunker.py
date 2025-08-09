@@ -1,20 +1,79 @@
 """
-Sliding Window Chunker Implementation
+Sliding Window Chunker Implementation.
 
-This module provides a sliding window chunking strategy that creates overlapping
-chunks with configurable window size and step size. This approach is particularly
-useful for maintaining context continuity and ensuring no information is lost
-at chunk boundaries.
+This module provides a sophisticated sliding window chunking strategy that
+creates overlapping text chunks with configurable window and step sizes.
+This approach is particularly effective for maintaining contextual continuity
+across chunk boundaries and ensuring comprehensive information coverage in
+dense, interconnected content.
 
-Features:
-    - Configurable window size and step size
-    - Character and token-based sliding windows
-    - Overlap preservation for context continuity
-    - Efficient memory usage for large documents
-    - Integration with tokenization strategies
+Core Concept:
+    The sliding window technique moves a fixed-size window across the text
+    with a configurable step size. When the step size is smaller than the
+    window size, overlapping chunks are created, preserving context that
+    might be lost with non-overlapping segmentation approaches.
+
+Key Features:
+    - Configurable window size for consistent chunk dimensions
+    - Adjustable step size for controlling overlap amount
+    - Character-based and token-based sliding window modes
+    - Boundary-aware processing to respect word and sentence boundaries
+    - Memory-efficient streaming for large document processing
+    - Integration with various tokenization strategies
+    - Metadata tracking for chunk relationships and overlaps
+
+Use Cases:
+    Dense Technical Content: Overlapping chunks ensure complex concepts
+                           spanning boundaries are preserved
+    Legal Documents: Contextual relationships between clauses maintained
+    Scientific Papers: Cross-references and dependencies preserved
+    Code Documentation: Function relationships and dependencies captured
+    Narrative Text: Story flow and character development continuity
+
+Performance Characteristics:
+    - Linear time complexity O(n) for text processing
+    - Configurable memory usage based on window size
+    - Efficient streaming processing for large documents
+    - Minimal memory footprint with sliding window approach
+
+Chunking Strategies:
+    Character-based: Fixed character count windows with precise overlap
+    Token-based: Word/token count windows respecting linguistic boundaries
+    Sentence-aware: Window boundaries aligned to sentence endings
+    Paragraph-aware: Larger windows with paragraph-level overlaps
+
+Configuration Parameters:
+    window_size: Size of each chunk in characters or tokens
+    step_size: Distance to move window (smaller = more overlap)
+    overlap_ratio: Alternative to step_size using percentage overlap
+    boundary_mode: How to handle boundaries (strict, word, sentence)
+    min_chunk_size: Minimum size threshold for generated chunks
+    tokenizer: Tokenization strategy for token-based chunking
+
+Quality Assurance:
+    - Overlap validation to ensure proper context preservation
+    - Boundary checking to prevent word/sentence fragmentation
+    - Size consistency validation across all generated chunks
+    - Content completeness verification (no text loss)
+
+Example Configuration:
+    >>> config = {
+    ...     "window_size": 1000,      # 1000 characters per chunk
+    ...     "step_size": 800,         # 200 character overlap
+    ...     "boundary_mode": "word",  # Respect word boundaries
+    ...     "min_chunk_size": 100     # Minimum viable chunk size
+    ... }
+    >>> chunker = SlidingWindowChunker(config)
+
+Integration Points:
+    - Vector embedding systems requiring consistent chunk sizes
+    - Search systems benefiting from contextual overlap
+    - RAG systems needing comprehensive content coverage
+    - Analysis pipelines requiring sliding window statistics
 
 Author: NeuroSync Team
 Created: 2025
+License: MIT
 """
 
 from typing import Any, Dict, List, Optional

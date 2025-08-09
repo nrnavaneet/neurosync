@@ -1,20 +1,101 @@
 """
-Hierarchical Document Structure-Aware Chunker
+Hierarchical Document Structure-Aware Chunker.
 
-This module provides intelligent chunking based on document structure and hierarchy.
-It analyzes document elements like headers, sections, paragraphs, and lists to create
-semantically meaningful chunks that respect the document's logical organization.
+This module provides an advanced chunking strategy that leverages document
+structure and hierarchical organization to create semantically meaningful
+chunks. Unlike traditional chunkers that split text arbitrarily, this
+implementation analyzes document elements and respects logical boundaries
+to preserve content coherence and relationships.
 
-Features:
-    - Document structure detection (headers, sections, paragraphs)
-    - Hierarchical chunk relationships (parent-child relationships)
-    - Table and list-aware chunking
-    - Metadata preservation for document elements
-    - Configurable chunk size with structure-aware splitting
-    - OCR integration for image text recognition (future)
+Core Principles:
+    The hierarchical chunker recognizes that documents have inherent structure
+    that should guide chunking decisions. It identifies structural elements
+    like headers, sections, paragraphs, lists, and tables, then creates chunks
+    that maintain these logical boundaries while respecting size constraints.
+
+Advanced Features:
+    - Multi-level document structure analysis and detection
+    - Hierarchical chunk relationships with parent-child linkage
+    - Structure-aware splitting that preserves semantic boundaries
+    - Table and list-aware processing with structure preservation
+    - Metadata enrichment for each document element
+    - Cross-reference and citation handling for academic documents
+    - Figure and caption association for multimedia content
+    - Configurable chunk size with intelligent structure-based overflow
+
+Document Element Recognition:
+    Headers: H1-H6 markdown headers, HTML headers, formatted titles
+    Sections: Logical document sections based on header hierarchy
+    Paragraphs: Text blocks with consistent formatting
+    Lists: Ordered and unordered lists with proper nesting
+    Tables: Tabular data with header and data row separation
+    Code Blocks: Programming code with syntax preservation
+    Quotes: Block quotes and citation blocks
+    Footnotes: Reference materials and explanatory notes
+
+Hierarchical Relationships:
+    The chunker maintains a tree structure of document elements:
+    - Parent-child relationships between headers and content
+    - Section boundaries and subsection nesting
+    - List item hierarchy and nested structures
+    - Table relationships (headers, rows, captions)
+    - Cross-references and internal document links
+
+Chunking Strategies:
+    Structure-First: Prioritize structural boundaries over size limits
+    Size-Constrained: Respect size limits while preserving structure
+    Balanced: Optimize both structure preservation and size consistency
+    Metadata-Rich: Include comprehensive structural metadata
+
+Configuration Options:
+    max_chunk_size: Maximum size before forced splitting
+    min_chunk_size: Minimum viable chunk size
+    preserve_headers: Always include headers with their content
+    table_handling: Strategy for table chunking (preserve, split, extract)
+    list_handling: How to handle nested lists
+    metadata_level: Depth of structural metadata to include
+    hierarchy_depth: Maximum hierarchy levels to track
+
+Quality Metrics:
+    - Structure preservation score (boundaries respected)
+    - Semantic coherence rating (logical content grouping)
+    - Size distribution analysis (chunk size consistency)
+    - Hierarchy completeness (structural relationships maintained)
+
+Use Cases:
+    Academic Papers: Preserve section structure and citations
+    Technical Documentation: Maintain procedure and example groupings
+    Legal Documents: Respect clause and section organization
+    Manuals: Keep instructions and examples together
+    Reports: Preserve chapter and section relationships
+    Books: Maintain narrative structure and chapter boundaries
+
+Integration Benefits:
+    - Enhanced RAG performance through structure-aware retrieval
+    - Improved search relevance with hierarchical context
+    - Better embeddings through coherent content chunks
+    - Simplified document navigation and reference systems
+
+Example Configuration:
+    >>> config = {
+    ...     "max_chunk_size": 2000,
+    ...     "preserve_headers": True,
+    ...     "table_handling": "preserve",
+    ...     "hierarchy_depth": 3,
+    ...     "metadata_level": "full"
+    ... }
+    >>> chunker = HierarchicalChunker(config)
+
+Performance Characteristics:
+    - O(n) time complexity for document analysis
+    - Memory efficient with streaming structure detection
+    - Configurable trade-offs between structure and size
+    - Optimized for large document processing
 
 Author: NeuroSync Team
 Created: 2025
+Version: 2.0
+License: MIT
 """
 
 import re

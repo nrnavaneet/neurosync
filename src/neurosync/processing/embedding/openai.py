@@ -1,5 +1,87 @@
 """
-OpenAI embedding model wrapper.
+OpenAI embedding model wrapper for commercial-grade text embeddings.
+
+This module provides a comprehensive wrapper for OpenAI's text embedding
+models, offering high-quality vector representations through OpenAI's API.
+It includes batch processing optimization, error handling, cost tracking,
+and performance monitoring for production-grade embedding operations.
+
+Key Features:
+    - Support for all OpenAI embedding models (text-embedding-3-small/large)
+    - Intelligent batch processing with optimal batch sizes
+    - Automatic retry mechanisms with exponential backoff
+    - Cost tracking and usage monitoring
+    - Rate limiting compliance with OpenAI API guidelines
+    - Error handling for API failures and network issues
+    - Performance optimization for large-scale operations
+    - Secure credential management
+
+Supported Models:
+    text-embedding-3-small: 1536 dimensions, optimized for speed and cost
+    text-embedding-3-large: 3072 dimensions, highest quality embeddings
+    text-embedding-ada-002: Legacy model, 1536 dimensions
+
+Performance Characteristics:
+    - Batch processing up to 2048 texts per request
+    - Automatic rate limiting to respect API quotas
+    - Concurrent request processing with connection pooling
+    - Memory-efficient streaming for large datasets
+    - Intelligent retry strategies for transient failures
+
+Quality Features:
+    - State-of-the-art embedding quality from OpenAI models
+    - Consistent embeddings across different batch sizes
+    - Normalized vectors for cosine similarity optimization
+    - High-dimensional representations for semantic precision
+
+Cost Optimization:
+    - Automatic text length optimization to reduce token usage
+    - Batch size optimization for cost-efficient API usage
+    - Usage tracking and budget monitoring capabilities
+    - Model selection guidance based on quality vs. cost trade-offs
+
+Configuration Options:
+    model_name: OpenAI model identifier
+    api_key: OpenAI API authentication key
+    max_batch_size: Maximum texts per batch request
+    max_retries: Retry attempts for failed requests
+    timeout: Request timeout in seconds
+    base_url: Custom API endpoint (for Azure OpenAI)
+
+Error Handling:
+    - Authentication error detection and clear messaging
+    - Rate limit handling with automatic backoff
+    - Network error recovery with exponential retry
+    - Input validation and preprocessing error handling
+    - Comprehensive error context for debugging
+
+Security Features:
+    - Secure API key management and storage
+    - HTTPS-only communication with OpenAI servers
+    - Input sanitization and validation
+    - No local storage of sensitive embedding data
+
+Integration Points:
+    - Embedding manager for multi-provider coordination
+    - Monitoring systems for performance and cost tracking
+    - Configuration management for dynamic model selection
+    - Caching systems for embedding result storage
+
+Example Usage:
+    >>> embedder = OpenAIEmbedder(
+    ...     model_name="text-embedding-3-small",
+    ...     api_key="your-api-key"
+    ... )
+    >>> embeddings = await embedder.embed_batch(texts)
+
+For advanced OpenAI integration and cost optimization, see:
+    - docs/openai-embedding-configuration.md
+    - docs/embedding-cost-optimization.md
+    - examples/openai-batch-processing.py
+
+Author: NeuroSync Team
+Created: 2025
+License: MIT
 """
 from typing import List
 

@@ -1,5 +1,78 @@
 """
-File system connector for local files and directories
+File system connector for local files and directories.
+
+This module provides a comprehensive file system connector that can ingest
+content from local files and directories. It supports various file formats
+with automatic content type detection, encoding handling, and batch processing
+capabilities for efficient large-scale file ingestion.
+
+Key Features:
+    - Recursive directory traversal with pattern matching
+    - Automatic content type detection based on file extensions and content
+    - Character encoding detection and handling for text files
+    - Batch processing for efficient handling of large file collections
+    - Comprehensive metadata extraction including file statistics
+    - Support for multiple file formats (text, JSON, CSV, XML, HTML, etc.)
+    - Error handling for corrupted or inaccessible files
+    - Incremental processing with change detection
+
+Supported File Types:
+    Text Files: .txt, .log, .cfg, .ini
+    Markup: .md, .html, .htm, .xml, .xsd
+    Data: .json, .csv, .tsv, .yaml, .yml
+    Documents: .pdf, .docx, .doc (requires additional processors)
+
+Configuration Options:
+    base_path: Root directory for file ingestion (default: current directory)
+    file_patterns: Glob patterns for file matching (default: ["*.*"])
+    supported_extensions: File extensions to process
+    batch_size: Number of files to process concurrently
+    recursive: Whether to traverse subdirectories
+    follow_symlinks: Whether to follow symbolic links
+    max_file_size: Maximum file size to process (bytes)
+    encoding_detection: Enable automatic encoding detection
+
+Performance Characteristics:
+    - Asynchronous I/O for concurrent file operations
+    - Memory-efficient streaming for large files
+    - Configurable concurrency limits to prevent resource exhaustion
+    - Intelligent batching based on file sizes and types
+
+Error Handling:
+    - Graceful handling of permission errors
+    - Recovery from corrupted files with detailed error reporting
+    - Timeout protection for slow file operations
+    - Comprehensive logging for debugging and monitoring
+
+Example Configuration:
+    >>> config = {
+    ...     "base_path": "/data/documents",
+    ...     "file_patterns": ["*.txt", "*.md", "*.pdf"],
+    ...     "batch_size": 50,
+    ...     "max_file_size": 10485760,  # 10MB
+    ...     "recursive": True
+    ... }
+    >>> connector = FileConnector(config)
+
+Usage Patterns:
+    Single File:
+    >>> async with connector:
+    ...     result = await connector.ingest("document.txt")
+
+    Batch Processing:
+    >>> async with connector:
+    ...     files = await connector.list_sources()
+    ...     results = await connector.ingest_batch(files[:100])
+
+    Discovery:
+    >>> async with connector:
+    ...     files = await connector.list_sources()
+    ...     info = await connector.get_source_info(files[0])
+
+For advanced file processing and custom format support, see:
+    - docs/file-connector-configuration.md
+    - docs/custom-file-processors.md
+    - examples/bulk-file-ingestion.py
 """
 
 import asyncio
@@ -27,7 +100,61 @@ from neurosync.ingestion.base.connector import (
 
 
 class FileConnector(BaseConnector):
-    """Connector for local file system ingestion"""
+    """
+    File system connector for ingesting content from local files and directories.
+
+    This connector provides comprehensive file system ingestion capabilities
+    with support for various file formats, automatic content type detection,
+    and efficient batch processing. It handles encoding detection, metadata
+    extraction, and error recovery for robust file processing workflows.
+
+    Architecture:
+        The connector operates on a configurable base directory and uses
+        glob patterns to discover files. It processes files asynchronously
+        with configurable concurrency limits and provides detailed metadata
+        about each processed file.
+
+    File Discovery:
+        - Recursive directory traversal with pattern matching
+        - Support for multiple glob patterns simultaneously
+        - File extension filtering for targeted processing
+        - Symbolic link handling with safety checks
+        - Hidden file inclusion/exclusion options
+
+    Content Processing:
+        - Automatic encoding detection for text files
+        - MIME type detection and content type mapping
+        - File size validation and chunking for large files
+        - Binary file detection with fallback handling
+        - Metadata extraction (size, dates, permissions)
+
+    Performance Features:
+        - Asynchronous I/O for concurrent file operations
+        - Configurable batch sizes for memory management
+        - Intelligent concurrency limiting based on system resources
+        - Progress monitoring for long operations
+        - Memory-efficient streaming for large files
+
+    Error Handling:
+        - Permission error recovery with detailed logging
+        - Corrupted file detection and graceful skipping
+        - Timeout protection for slow file operations
+        - Comprehensive error context for debugging
+
+    Configuration Parameters:
+        base_path: Root directory for file discovery
+        file_patterns: List of glob patterns for file matching
+        supported_extensions: File extensions to process
+        batch_size: Concurrent file processing limit
+        max_file_size: Maximum file size threshold
+        recursive: Enable subdirectory traversal
+        follow_symlinks: Process symbolic link targets
+        encoding_detection: Enable automatic encoding detection
+
+    Thread Safety:
+        The connector is designed for single-threaded async usage.
+        Multiple instances can be used for parallel directory processing.
+    """
 
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)

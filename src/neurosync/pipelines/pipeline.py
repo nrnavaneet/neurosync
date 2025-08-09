@@ -1,5 +1,47 @@
 """
-NeuroSync Full Pipeline - End-to-End Data Processing Pipeline
+NeuroSync Full Pipeline - End-to-End Data Processing Pipeline.
+
+This module implements the complete NeuroSync pipeline that orchestrates
+the entire data processing workflow from ingestion to chat-ready deployment.
+It provides a unified interface for running all pipeline phases with
+intelligent configuration selection and progress monitoring.
+
+Pipeline Phases:
+    1. Ingestion: Extract data from various sources (files, APIs, databases)
+    2. Processing: Clean, normalize, and chunk text content
+    3. Embedding: Generate vector representations using embedding models
+    4. Storage: Store vectors in optimized vector databases
+    5. Serving: Deploy LLM-powered chat interface with retrieval
+
+Key Features:
+    - Intelligent auto-configuration based on data type and API keys
+    - Interactive template selection with rich CLI interface
+    - Real-time progress monitoring with detailed phase timing
+    - Comprehensive error handling and recovery mechanisms
+    - Production-ready deployment with monitoring capabilities
+    - Extensible architecture supporting custom configurations
+
+Classes:
+    FullPipeline: Main pipeline orchestrator with end-to-end processing
+
+The pipeline supports multiple execution modes:
+    - Auto mode: Intelligent configuration selection
+    - Interactive mode: User-guided template selection
+    - Custom mode: User-provided configuration files
+    - Batch mode: Silent execution for automation
+
+Example:
+    >>> from neurosync.pipelines.pipeline import FullPipeline
+    >>> pipeline = FullPipeline()
+    >>> # Auto mode with intelligent defaults
+    >>> await pipeline.run_full_pipeline("/path/to/data", auto=True)
+    >>> # Interactive mode with user selection
+    >>> await pipeline.run_full_pipeline("/path/to/data", interactive=True)
+
+For detailed configuration options and advanced usage, see:
+    - docs/pipeline-configuration.md
+    - docs/template-system.md
+    - examples/pipeline-usage.py
 """
 
 import asyncio
@@ -35,7 +77,56 @@ console = Console()
 
 
 class FullPipeline:
-    """Comprehensive end-to-end pipeline from ingestion to LLM chat."""
+    """
+    Comprehensive end-to-end pipeline orchestrator.
+
+    The FullPipeline class coordinates all phases of the NeuroSync data
+    processing workflow, from initial data ingestion through to deployment
+    of a chat-ready LLM interface. It provides intelligent configuration
+    management, progress monitoring, and error handling throughout the
+    entire pipeline execution.
+
+    Key Capabilities:
+        - Automatic data type detection and configuration selection
+        - Interactive template selection with rich CLI interface
+        - Real-time progress tracking with detailed timing metrics
+        - Intelligent fallback and error recovery mechanisms
+        - Multi-phase validation and quality assurance
+        - Production deployment with monitoring integration
+
+    Pipeline Phases:
+        1. Configuration: Select optimal templates based on input and API keys
+        2. Ingestion: Extract and normalize data from various sources
+        3. Processing: Clean, chunk, and prepare text for embedding
+        4. Embedding: Generate vector representations using selected models
+        5. Storage: Index vectors in optimized database systems
+        6. Serving: Deploy LLM interface with retrieval capabilities
+
+    Attributes:
+        console (Console): Rich console for formatted output
+        logger (Logger): Structured logging instance
+        pipeline_start_time (Optional[float]): Pipeline execution start time
+        phase_timings (Dict[str, float]): Timing data for each phase
+        templates (Dict[str, Any]): Available configuration templates
+
+    The pipeline supports flexible execution modes:
+        - Auto: Intelligent defaults with minimal user interaction
+        - Interactive: Guided configuration with user selections
+        - Custom: User-provided configuration files
+        - Batch: Silent execution suitable for automation
+
+    Example:
+        >>> pipeline = FullPipeline()
+        >>> # Quick auto-configuration
+        >>> await pipeline.run_full_pipeline("/data", auto=True)
+        >>>
+        >>> # Interactive configuration
+        >>> await pipeline.run_full_pipeline("/data", interactive=True)
+        >>>
+        >>> # Custom configuration
+        >>> config = {...}  # Custom configuration dict
+        >>> await pipeline.run_full_pipeline("/data", config=config)
+    """
 
     def __init__(self):
         self.console = console
@@ -1303,7 +1394,7 @@ class FullPipeline:
         vector_store_info = metrics.get("vector_store", {})
         embedding_info = metrics.get("embedding", {})
 
-        results_table = Table(title="📊 Embedding & Vector Store Results")
+        results_table = Table(title=" Embedding & Vector Store Results")
         results_table.add_column("Metric", style="cyan")
         results_table.add_column("Value", style="green")
 
@@ -1644,7 +1735,7 @@ class FullPipeline:
                         and search_results
                     ):
                         console.print(
-                            f"\n[dim]📚 Sources: "
+                            f"\n[dim] Sources: "
                             f"{len(search_results)} documents found[/dim]"
                         )
 
@@ -1653,7 +1744,7 @@ class FullPipeline:
                 except Exception as e:
                     console.print(f"[red]Error: {e}[/red]")
 
-            console.print("\n[yellow]👋 Chat session ended. Goodbye![/yellow]")
+            console.print("\n[yellow] Chat session ended. Goodbye![/yellow]")
 
         except Exception as e:
             console.print(f"[red]Failed to start chat: {e}[/red]")
@@ -1674,7 +1765,7 @@ class FullPipeline:
         summary_table.add_row(
             "[bold]Total Pipeline Time[/bold]",
             f"[bold]{total_time:.2f}s[/bold]",
-            "[bold green]✅ Success[/bold green]",
+            "[bold green] Success[/bold green]",
         )
 
         console.print("\n")
@@ -1750,14 +1841,14 @@ class FullPipeline:
                 env_value = os.getenv(var_name)
                 if env_value and is_valid_api_key(env_value):
                     console.print(
-                        f"[green]🔑 Found {provider.title()} API key, "
+                        f"[green] Found {provider.title()} API key, "
                         f"using {provider} template[/green]"
                     )
                     return provider
 
         # No valid API keys found, return a template that doesn't need API keys
         console.print(
-            "[yellow]⚠️  No valid API keys found, will use mock LLM responses[/yellow]"
+            "[yellow]  No valid API keys found, will use mock LLM responses[/yellow]"
         )
         return "openai"  # We'll handle the missing key gracefully in the LLM manager
 
@@ -1789,7 +1880,7 @@ class FullPipeline:
                 llm_template = self.show_template_selection("llm")
 
             # Show selected templates
-            selection_table = Table(title="📋 Selected Templates")
+            selection_table = Table(title=" Selected Templates")
             selection_table.add_column("Phase", style="cyan")
             selection_table.add_column("Template", style="green")
 

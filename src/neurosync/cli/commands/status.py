@@ -1,5 +1,58 @@
 """
-Status commands for NeuroSync CLI
+Status commands for comprehensive NeuroSync system monitoring.
+
+This module provides CLI commands for monitoring the health, performance,
+and operational status of all NeuroSync components. It includes real-time
+monitoring capabilities, service health checks, resource usage tracking,
+and comprehensive system diagnostics.
+
+Key Commands:
+    health: Overall system health assessment
+    services: Individual service status monitoring
+    pipelines: Pipeline execution status and metrics
+    storage: Storage systems and resource usage
+    monitor: Real-time monitoring dashboard
+    logs: Service log aggregation and analysis
+
+Features:
+    - Comprehensive health check orchestration
+    - Real-time service monitoring with auto-refresh
+    - Resource usage tracking (CPU, memory, disk, network)
+    - Pipeline execution monitoring and metrics
+    - Storage system status and capacity monitoring
+    - Log aggregation with filtering and search
+    - Performance metrics and trend analysis
+    - Alert thresholds and notification integration
+
+Monitored Components:
+    - API server (FastAPI/uvicorn)
+    - Database systems (PostgreSQL, Redis)
+    - Vector stores (FAISS, Qdrant)
+    - LLM providers (OpenAI, Anthropic, etc.)
+    - Processing pipelines (ingestion, embedding)
+    - File systems and storage backends
+    - Network connectivity and latency
+
+Example Usage:
+    # Quick health overview
+    $ neurosync status health
+
+    # Detailed service monitoring
+    $ neurosync status services --watch
+
+    # Pipeline execution status
+    $ neurosync status pipelines --running
+
+    # Real-time monitoring dashboard
+    $ neurosync status monitor
+
+    # Service logs with filtering
+    $ neurosync status logs --service api --level error
+
+For monitoring best practices and alert configuration, see:
+    - docs/monitoring.md
+    - docs/troubleshooting.md
+    - examples/monitoring-setup.py
 """
 
 import time
@@ -22,7 +75,46 @@ logger = get_logger(__name__)
 
 
 def check_service_health(service_name: str, host: str, port: int) -> Dict[str, Any]:
-    """Check if a service is healthy"""
+    """
+    Check if a network service is healthy and responsive.
+
+    Performs a TCP connection test to determine if a service is
+    accepting connections on the specified host and port. This is
+    a basic but effective health check for most network services.
+
+    Args:
+        service_name (str): Human-readable name for the service
+        host (str): Service hostname or IP address
+        port (int): Service port number
+
+    Returns:
+        Dict[str, Any]: Health check result with structure:
+            {
+                "service": str,      # Service identifier
+                "status": str,       # "healthy" or "unhealthy"
+                "host": str,         # Connection host
+                "port": int,         # Connection port
+                "response_time": str # Response time or error info
+            }
+
+    Connection Logic:
+        - Uses TCP socket with 5-second timeout
+        - Returns "healthy" if connection succeeds
+        - Returns "unhealthy" with error details if connection fails
+        - Handles network exceptions gracefully
+
+    Example:
+        >>> result = check_service_health("API Server", "localhost", 8000)
+        >>> if result["status"] == "healthy":
+        ...     print(f"✓ {result['service']} is running")
+        >>> else:
+        ...     print(f"✗ {result['service']} is down: {result.get('error')}")
+
+    Note:
+        This function only tests network connectivity. For deeper health
+        checks (application-specific logic), use dedicated health endpoints
+        or application-specific monitoring functions.
+    """
     import socket
 
     try:
@@ -128,7 +220,7 @@ def system() -> None:
         progress.update(task, completed=100, total=100)
 
     # Display results
-    table = Table(title="🏥 System Health Status")
+    table = Table(title=" System Health Status")
     table.add_column("Service", style="cyan")
     table.add_column("Status", style="bold")
     table.add_column("Host:Port", style="blue")
@@ -162,10 +254,10 @@ def system() -> None:
 
     # Overall status
     if overall_healthy:
-        console.print("\n✅ All systems are healthy!", style="bold green")
+        console.print("\n All systems are healthy!", style="bold green")
     else:
         console.print(
-            "\n⚠️  Some systems are unhealthy. Check the details above.",
+            "\n  Some systems are unhealthy. Check the details above.",
             style="bold yellow",
         )
 
@@ -215,7 +307,7 @@ def services() -> None:
         },
     ]
 
-    table = Table(title="🔧 NeuroSync Services")
+    table = Table(title=" NeuroSync Services")
     table.add_column("Service", style="cyan")
     table.add_column("Port", style="green")
     table.add_column("Description", style="blue")
@@ -268,7 +360,7 @@ def pipelines() -> None:
         },
     ]
 
-    table = Table(title="📊 Pipeline Status")
+    table = Table(title=" Pipeline Status")
     table.add_column("Pipeline", style="cyan")
     table.add_column("Status", style="bold")
     table.add_column("Last Run", style="green")
@@ -333,7 +425,7 @@ def storage() -> None:
         ("Logs Directory", "./logs"),
     ]
 
-    table = Table(title="💾 Storage Usage")
+    table = Table(title=" Storage Usage")
     table.add_column("Location", style="cyan")
     table.add_column("Path", style="blue")
     table.add_column("Size", style="green")
@@ -346,10 +438,10 @@ def storage() -> None:
             size = get_directory_size(path)
             total_size += size
             size_str = format_bytes(size)
-            status = "✅ Available"
+            status = " Available"
         else:
             size_str = "N/A"
-            status = "❌ Missing"
+            status = " Missing"
 
         table.add_row(name, path, size_str, status)
 
@@ -444,7 +536,7 @@ def monitor(
     def generate_status_table() -> Table:
         """Generate current status table"""
         table = Table(
-            title=f"🔍 Real-time System Monitor (Updated: {time.strftime('%H:%M:%S')})"
+            title=f" Real-time System Monitor (Updated: {time.strftime('%H:%M:%S')})"
         )
         table.add_column("Component", style="cyan")
         table.add_column("Status", style="bold")
@@ -481,7 +573,7 @@ def monitor(
             time.sleep(interval)
             live.update(generate_status_table())
 
-    console.print("✅ Monitoring session completed")
+    console.print(" Monitoring session completed")
 
 
 @app.command()
@@ -499,7 +591,7 @@ def logs(
     logger.info(f"Displaying logs for service: {service}")
 
     if service == "all":
-        console.print("📋 Showing logs for all services")
+        console.print(" Showing logs for all services")
         console.print(
             "Use --service to filter by specific service: api, postgres, redis, airflow"
         )
@@ -518,7 +610,7 @@ def logs(
             ("2024-01-15 10:30:30", "API", "INFO", "Health check endpoint registered"),
         ]
     else:
-        console.print(f"📋 Showing logs for service: {service}")
+        console.print(f" Showing logs for service: {service}")
         # Mock service-specific logs
         log_entries = [
             (
@@ -541,7 +633,7 @@ def logs(
             ),
         ]
 
-    table = Table(title=f"📄 Service Logs (Last {lines} lines)")
+    table = Table(title=f" Service Logs (Last {lines} lines)")
     table.add_column("Timestamp", style="cyan")
     table.add_column("Service", style="blue")
     table.add_column("Level", style="bold")
@@ -558,7 +650,7 @@ def logs(
     console.print(table)
 
     if follow:
-        console.print("\n👀 Following logs... (Press Ctrl+C to stop)")
+        console.print("\n Following logs... (Press Ctrl+C to stop)")
         console.print("Note: Live log following will be implemented in later phases")
 
 

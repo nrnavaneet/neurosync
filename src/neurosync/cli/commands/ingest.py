@@ -1,5 +1,67 @@
 """
-Ingestion commands for NeuroSync CLI
+Comprehensive data ingestion commands for the NeuroSync CLI.
+
+This module provides a full suite of command-line tools for ingesting data
+from various sources into the NeuroSync pipeline. It supports multiple
+data formats, source types, and processing options with comprehensive
+monitoring and error handling capabilities.
+
+Key Commands:
+    file: Ingest data from local files and directories
+    api: Extract data from REST APIs with authentication
+    database: Ingest from SQL databases with custom queries
+    web: Web scraping and content extraction
+    mock: Generate synthetic data for testing and development
+    validate: Validate and test ingestion configurations
+
+Features:
+    - Multi-format file support (PDF, DOCX, TXT, JSON, CSV, HTML)
+    - Recursive directory processing with pattern matching
+    - REST API ingestion with authentication and rate limiting
+    - Database connectivity with custom SQL queries
+    - Web scraping with robots.txt compliance
+    - Mock data generation for testing pipelines
+    - Configuration validation and testing
+    - Progress monitoring with detailed statistics
+    - Error handling with retry mechanisms
+    - Batch processing for large datasets
+
+Data Sources Supported:
+    - Local files: Documents, text files, structured data
+    - REST APIs: Paginated endpoints with authentication
+    - Databases: PostgreSQL, MySQL, SQLite
+    - Web pages: HTML content extraction and crawling
+    - Cloud storage: S3, GCS, Azure Blob
+    - Streaming: Real-time data feeds
+
+Processing Features:
+    - Automatic format detection and parsing
+    - Text extraction from binary formats
+    - Metadata enrichment and validation
+    - Content filtering and quality assessment
+    - Configurable chunking strategies
+    - Error recovery and checkpoint resumption
+
+Example Usage:
+    # Ingest local documents
+    $ neurosync ingest file /path/to/docs --recursive --output results.json
+
+    # API data extraction
+    $ neurosync ingest api https://api.example.com/data --auth-token TOKEN
+
+    # Database ingestion
+    $ neurosync ingest database --query "SELECT * FROM articles" --output db_data.json
+
+    # Generate test data
+    $ neurosync ingest mock --type documents --count 100
+
+    # Validate configuration
+    $ neurosync ingest validate config.yaml
+
+For configuration examples and connector documentation, see:
+    - docs/ingestion-guide.md
+    - docs/data-sources.md
+    - examples/ingestion-configs.yaml
 """
 
 import json
@@ -364,7 +426,7 @@ def api(
 
             progress.update(task, completed=100, total=100)
             console.print(
-                f"📝 Mock API data created and saved to: [green]{output_path}[/green]"
+                f" Mock API data created and saved to: [green]{output_path}[/green]"
             )
 
         except Exception as e:
@@ -835,18 +897,18 @@ def validate_config(
         if errors:
             console.print("[red]Validation Errors:[/red]")
             for error in errors:
-                console.print(f"  ❌ {error}")
+                console.print(f"   {error}")
 
         if warnings:
             console.print("[yellow]Validation Warnings:[/yellow]")
             for warning in warnings:
-                console.print(f"  ⚠️  {warning}")
+                console.print(f"    {warning}")
 
         if not errors and not warnings:
-            console.print("[green]✅ Configuration file is valid![/green]")
+            console.print("[green] Configuration file is valid![/green]")
         elif not errors:
             console.print(
-                "[yellow]⚠️  Configuration file is valid with warnings[/yellow]"
+                "[yellow]  Configuration file is valid with warnings[/yellow]"
             )
         else:
             console.print("[red]Configuration file has errors[/red]")

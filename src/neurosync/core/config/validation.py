@@ -1,5 +1,93 @@
 """
-Configuration validation utilities for NeuroSync
+Configuration validation utilities for NeuroSync.
+
+This module provides comprehensive configuration validation using Pydantic
+models to ensure system configuration integrity and prevent runtime errors
+caused by invalid or incomplete configuration. It supports validation for
+all NeuroSync components including connectors, processors, and pipelines.
+
+Key Features:
+    - Pydantic-based schema validation for type safety
+    - Comprehensive validation rules for all configuration sections
+    - Custom validators for domain-specific constraints
+    - Configuration loading from multiple formats (YAML, JSON, TOML)
+    - Detailed error reporting with field-specific messages
+    - Environment variable interpolation and validation
+    - Configuration merging and inheritance support
+    - Schema versioning and migration capabilities
+
+Validation Scope:
+    Connector Configuration: Data source connection parameters
+    Processing Configuration: Text processing and chunking settings
+    Embedding Configuration: Model selection and API credentials
+    Storage Configuration: Vector database and metadata storage
+    Pipeline Configuration: End-to-end workflow orchestration
+    Monitoring Configuration: Logging, metrics, and alerting
+
+Configuration Formats:
+    The validator supports multiple configuration formats:
+    - YAML: Human-readable configuration files
+    - JSON: Structured configuration with strict syntax
+    - TOML: Configuration sections with clear hierarchy
+    - Python: Dynamic configuration with code evaluation
+
+Validation Features:
+    - Required field enforcement with clear error messages
+    - Type checking and automatic type coercion where appropriate
+    - Range validation for numeric parameters
+    - Format validation for URLs, file paths, and credentials
+    - Cross-field validation for dependent configuration values
+    - Custom validation rules for business logic constraints
+
+Error Handling:
+    The validation system provides detailed error reporting:
+    - Field-level error messages with specific constraint violations
+    - Nested error reporting for complex configuration structures
+    - Suggested fixes for common configuration mistakes
+    - Warning messages for deprecated configuration options
+
+Configuration Schema:
+    The validation system uses hierarchical schemas:
+    - Base schemas for common configuration patterns
+    - Specialized schemas for component-specific settings
+    - Composition schemas for complex multi-component configurations
+    - Extension schemas for plugin and custom component support
+
+Environment Integration:
+    - Environment variable substitution in configuration values
+    - Environment-specific configuration overlays
+    - Sensitive value handling with secure storage integration
+    - Configuration validation in different deployment environments
+
+Example Usage:
+    >>> config_data = load_yaml_config("config.yaml")
+    >>> try:
+    ...     validated_config = IngestionConfig(**config_data)
+    ...     print("Configuration is valid")
+    ... except ValidationError as e:
+    ...     print(f"Validation errors: {e}")
+
+Configuration Inheritance:
+    The system supports configuration inheritance and merging:
+    - Base configurations with environment-specific overrides
+    - Component-specific configurations inheriting from defaults
+    - Profile-based configurations for different use cases
+    - Dynamic configuration updates with validation
+
+Quality Assurance:
+    - Comprehensive test coverage for all validation scenarios
+    - Performance testing for large configuration files
+    - Security validation for credential and sensitive data handling
+    - Compatibility testing across different configuration formats
+
+For advanced configuration and validation patterns, see:
+    - docs/configuration-schema.md
+    - docs/configuration-best-practices.md
+    - examples/configuration-templates/
+
+Author: NeuroSync Team
+Created: 2025
+License: MIT
 """
 
 import json

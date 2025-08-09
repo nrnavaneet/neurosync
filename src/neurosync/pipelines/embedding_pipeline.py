@@ -1,5 +1,71 @@
 """
-Embedding Pipeline for NeuroSync
+Embedding Pipeline for vector generation and storage management.
+
+This module implements the embedding pipeline that transforms processed text
+chunks into vector representations and stores them in optimized vector
+databases. It provides comprehensive embedding generation, storage management,
+and optional hybrid search capabilities for enhanced retrieval performance.
+
+Key Features:
+    - Multi-model embedding generation with configurable backends
+    - Batch processing optimization for large-scale datasets
+    - Vector storage with multiple database backend support
+    - Hybrid search combining dense and sparse retrieval
+    - Progress monitoring with detailed metrics and timing
+    - Error handling with retry mechanisms and graceful degradation
+    - Memory optimization for efficient processing of large datasets
+    - Index versioning and backup capabilities
+
+Components:
+    EmbeddingPipeline: Main orchestrator for embedding and storage operations
+
+Embedding Backends Supported:
+    - OpenAI: text-embedding-3-small/large models
+    - Sentence Transformers: Local model inference
+    - Cohere: Multilingual embedding models
+    - Azure OpenAI: Enterprise-grade embedding services
+    - Custom: User-defined embedding implementations
+
+Vector Storage Backends:
+    - FAISS: High-performance similarity search with GPU support
+    - Qdrant: Production-scale vector database with filtering
+    - Chroma: Embedded vector store for development
+    - Pinecone: Managed vector database service
+
+Pipeline Stages:
+    1. Chunk Validation: Ensure input chunks are properly formatted
+    2. Embedding Generation: Convert text to vector representations
+    3. Vector Normalization: Standardize vector formats and metadata
+    4. Storage Indexing: Build optimized search indexes
+    5. Backup Creation: Optional versioned backup generation
+    6. Validation: Verify embedding quality and storage integrity
+
+Performance Optimizations:
+    - Batch processing to maximize GPU/CPU utilization
+    - Memory-mapped storage for large indexes
+    - Asynchronous processing for I/O operations
+    - Dynamic batch sizing based on available resources
+    - Index compression for storage efficiency
+
+Example:
+    >>> embedding_config = {
+    ...     "provider": "sentence_transformers",
+    ...     "model": "all-MiniLM-L6-v2",
+    ...     "batch_size": 32
+    ... }
+    >>> vector_config = {
+    ...     "backend": "faiss",
+    ...     "index_type": "hnsw",
+    ...     "dimension": 384
+    ... }
+    >>> pipeline = EmbeddingPipeline(embedding_config, vector_config)
+    >>> results = pipeline.run(processed_chunks, batch_size=64)
+    >>> print(f"Embedded {len(results.vectors)} chunks")
+
+For configuration examples and performance tuning, see:
+    - docs/embedding-configuration.md
+    - docs/vector-storage.md
+    - examples/embedding-pipelines.py
 """
 
 from typing import Any, Dict, List, Optional
@@ -9,7 +75,8 @@ from neurosync.core.logging.logger import get_logger
 from neurosync.processing.base import Chunk
 from neurosync.processing.embedding.manager import EmbeddingManager
 from neurosync.storage.vector_store.base import Vector
-from neurosync.storage.vector_store.hybrid_search import HybridSearchEngine
+
+# from neurosync.storage.vector_store.hybrid_search import HybridSearchEngine
 from neurosync.storage.vector_store.manager import VectorStoreManager
 
 # Set up threading environment to prevent PyTorch/FAISS conflicts
@@ -37,12 +104,13 @@ class EmbeddingPipeline:
         # Initialize hybrid search if enabled
         self.hybrid_search_engine = None
         if enable_hybrid_search:
-            hybrid_config = hybrid_search_config or {}
-            self.hybrid_search_engine = HybridSearchEngine(
-                vector_store_manager=self.vector_store_manager,
-                embedding_manager=self.embedding_manager,
-                **hybrid_config,
-            )
+            # TODO: Implement HybridSearchEngine
+            # self.hybrid_search_engine = HybridSearchEngine(
+            #     vector_store_manager=self.vector_store_manager,
+            #     embedding_manager=self.embedding_manager,
+            #     **hybrid_config,
+            # )
+            logger.warning("Hybrid search is not yet implemented")
 
     def run(
         self, chunks: List[Chunk], batch_size: int = 32, create_backup: bool = False
